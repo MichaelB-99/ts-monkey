@@ -22,6 +22,17 @@ export enum TokenType {
 	LET = "LET",
 	FUNCTION = "FUNCTION",
 }
+const keywordMap: Record<string, TokenType> = {
+	fn: TokenType.FUNCTION,
+	let: TokenType.LET,
+};
+
+export function lookupIdentifier(identifer: string) {
+	if (keywordMap[identifer]) {
+		return keywordMap[identifer];
+	}
+	return TokenType.IDENT;
+}
 
 export type Token = {
 	type: TokenType;
