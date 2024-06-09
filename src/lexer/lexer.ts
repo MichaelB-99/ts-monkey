@@ -30,7 +30,13 @@ export class Lexer {
 		this.skipWhitespace();
 		switch (this.ch) {
 			case "=":
-				token = this.newToken(TokenType.ASSIGN, this.ch);
+				if (this.peekChar() === "=") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.EQ, currChar + this.ch);
+				} else {
+					token = this.newToken(TokenType.ASSIGN, this.ch);
+				}
 				break;
 
 			case "(":
@@ -55,6 +61,34 @@ export class Lexer {
 				break;
 			case ";":
 				token = this.newToken(TokenType.SEMICOLON, this.ch);
+				break;
+
+			case "-":
+				token = this.newToken(TokenType.MINUS, this.ch);
+				break;
+			case "!":
+				if (this.peekChar() === "=") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.NOT_EQ, currChar + this.ch);
+				} else {
+					token = this.newToken(TokenType.BANG, this.ch);
+				}
+				break;
+
+			case "*":
+				token = this.newToken(TokenType.ASTERISK, this.ch);
+				break;
+
+			case "/":
+				token = this.newToken(TokenType.SLASH, this.ch);
+				break;
+
+			case "<":
+				token = this.newToken(TokenType.LT, this.ch);
+				break;
+			case ">":
+				token = this.newToken(TokenType.GT, this.ch);
 				break;
 
 			case 0: {
@@ -117,5 +151,10 @@ export class Lexer {
 
 	isDigit(ch: Char) {
 		return ch >= "0" && ch <= "9";
+	}
+
+	peekChar() {
+		if (this.readPosition >= this.input.length) return 0;
+		return this.input[this.readPosition];
 	}
 }

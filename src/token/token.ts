@@ -9,6 +9,14 @@ export enum TokenType {
 	//operators
 	ASSIGN = "=",
 	PLUS = "+",
+	MINUS = "-",
+	BANG = "!",
+	ASTERISK = "/",
+	SLASH = "/",
+	LT = "<",
+	GT = ">",
+	EQ = "==",
+	NOT_EQ = "!=",
 
 	//delimiters
 	COMMA = ",",
@@ -21,10 +29,20 @@ export enum TokenType {
 	//keywords
 	LET = "LET",
 	FUNCTION = "FUNCTION",
+	TRUE = "TRUE",
+	FALSE = "FALSE",
+	IF = "IF",
+	ELSE = "ELSE",
+	RETURN = "RETURN",
 }
 const keywordMap: Record<string, TokenType> = {
 	fn: TokenType.FUNCTION,
 	let: TokenType.LET,
+	if: TokenType.IF,
+	else: TokenType.ELSE,
+	true: TokenType.TRUE,
+	false: TokenType.FALSE,
+	return: TokenType.RETURN,
 };
 
 export function lookupIdentifier(identifer: string) {
