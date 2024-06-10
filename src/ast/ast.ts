@@ -11,7 +11,7 @@ export interface Expression extends Node {
 }
 
 export class Program implements Node {
-	constructor(public statements: Statement[]) {}
+	public statements: Statement[] = [];
 	tokenLiteral(): string {
 		if (this.statements.length > 0) {
 			return this.statements[0].tokenLiteral();
@@ -31,7 +31,10 @@ export class LetStatement implements Statement {
 }
 
 export class Identifier implements Expression {
-	constructor(public token: Token) {}
+	constructor(
+		public token: Token,
+		public value: string,
+	) {}
 	expressionNode() {}
 	tokenLiteral(): string {
 		return this.token.literal;
