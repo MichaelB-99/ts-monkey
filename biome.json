@@ -8,7 +8,14 @@
 	},
 	"linter": {
 		"enabled": true,
+		
 		"rules": {
+			"correctness":{
+				"noUnusedImports":{
+					"fix":"safe",
+					"level":"warn"
+				}
+			},
 			"recommended": true
 		}
 	}
