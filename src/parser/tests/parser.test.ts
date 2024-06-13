@@ -1,10 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import {
+	type Expression,
 	ExpressionStatement,
 	Identifier,
 	IntegerLiteral,
 	LetStatement,
-	Program,
+	PrefixExpression,
 	ReturnStatement,
 } from "../../ast/ast";
 import { Lexer } from "../../lexer/lexer";
@@ -74,8 +75,36 @@ describe("parser", () => {
 		expect(expression.value).toBe(1337);
 		expect(expression.tokenLiteral()).toBe("1337");
 	});
+
+	it("should parse prefix expressions", () => {
+		const tests = [
+			{ input: "!5;", operator: "!", integerValue: 5 },
+			{ input: "-15", operator: "-", integerValue: 15 },
+		];
+		for (const { input, integerValue, operator } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			console.log(program);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			console.log(statement);
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as PrefixExpression;
+			expect(expr).toBeInstanceOf(PrefixExpression);
+			expect(expr.operator).toBe(operator);
+			expect(testIntegerLiteral(expr.rightExpression, integerValue)).toBe(true);
+		}
+	});
 });
 
+function testIntegerLiteral(intLiteral: Expression | null, value: number) {
+	expect(intLiteral).toBeInstanceOf(IntegerLiteral);
+	const integ = intLiteral as IntegerLiteral;
+	expect(integ.value).toBe(value);
+	expect(integ.tokenLiteral()).toBe(String(value));
+	return true;
+}
 function checkParserErrors(parser: Parser) {
 	if (!parser.errors.length) {
 		return;

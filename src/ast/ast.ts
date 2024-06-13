@@ -89,3 +89,18 @@ export class IntegerLiteral implements Expression {
 		return this.token.literal;
 	}
 }
+
+export class PrefixExpression implements Expression {
+	public rightExpression: Expression | null = null;
+	constructor(
+		public token: Token,
+		public operator: string,
+	) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `(${this.operator}${this.rightExpression?.string()})`;
+	}
+}

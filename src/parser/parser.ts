@@ -4,6 +4,7 @@ import {
 	Identifier,
 	IntegerLiteral,
 	LetStatement,
+	PrefixExpression,
 	Program,
 	ReturnStatement,
 	type Statement,
@@ -34,7 +35,11 @@ export class Parser {
 
 	constructor(private lexer: Lexer) {
 		this.registerPrefix(TokenType.IDENT, this.parseIdentifier);
+		this.registerPrefix(TokenType.IDENT, this.parseIdentifier);
 		this.registerPrefix(TokenType.INT, this.parseIntegerLiteral);
+		this.registerPrefix(TokenType.BANG, this.parsePrefixExpression);
+		this.registerPrefix(TokenType.MINUS, this.parsePrefixExpression);
+
 		this.nextToken();
 		this.nextToken();
 	}
@@ -98,9 +103,16 @@ export class Parser {
 		}
 		return statement;
 	}
+	noPrefixParseFnError(type: TokenType) {
+		this.errors.push("no parse function found for type", this.currToken.type);
+	}
+
 	parseExpression(precedence: Precedences) {
 		const prefixFn = this.prefixParseFnsMap[this.currToken.type];
-		if (!prefixFn) return null;
+		if (!prefixFn) {
+			this.noPrefixParseFnError(this.currToken.type);
+			return null;
+		}
 		const leftHandExpr = prefixFn();
 		return leftHandExpr;
 	}
@@ -113,6 +125,12 @@ export class Parser {
 		}
 		statement.value = value;
 		return statement;
+	};
+	parsePrefixExpression = () => {
+		const expr = new PrefixExpression(this.currToken, this.currToken.literal);
+		this.nextToken();
+		expr.rightExpression = this.parseExpression(Precedences.PREFIX);
+		return expr;
 	};
 	currTokenIs(type: TokenType) {
 		return this.currToken.type === type;
