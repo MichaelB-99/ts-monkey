@@ -1,4 +1,4 @@
-import { TokenType, lookupIdentifier, type Token } from "../token/token";
+import { type Token, TokenType, lookupIdentifier } from "../token/token";
 
 type Char = string | 0;
 export class Lexer {
@@ -150,7 +150,8 @@ export class Lexer {
 	}
 
 	isDigit(ch: Char) {
-		return ch >= "0" && ch <= "9";
+		// gotta love js type coercion.. it will coerce 0 (eof) to a string
+		return ch !== 0 && ch >= "0" && ch <= "9";
 	}
 
 	peekChar() {
