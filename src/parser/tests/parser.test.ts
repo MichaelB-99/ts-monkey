@@ -1,5 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import { LetStatement, Program, ReturnStatement } from "../../ast/ast";
+import {
+	ExpressionStatement,
+	Identifier,
+	IntegerLiteral,
+	LetStatement,
+	Program,
+	ReturnStatement,
+} from "../../ast/ast";
 import { Lexer } from "../../lexer/lexer";
 import { Parser } from "../parser";
 
@@ -41,6 +48,31 @@ describe("parser", () => {
 			expect(statement.tokenLiteral()).toBe("return");
 			expect(statement).toBeInstanceOf(ReturnStatement);
 		});
+	});
+	it("should parse identifiers", () => {
+		const input = "foobar";
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(program.statements).toHaveLength(1);
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		const expression = statement.expression as Identifier;
+		expect(expression).toBeInstanceOf(Identifier);
+		expect(expression.value).toBe("foobar");
+	});
+	it("should parse integers", () => {
+		const input = "1337;";
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(program.statements).toHaveLength(1);
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		const expression = statement.expression as IntegerLiteral;
+		expect(expression).toBeInstanceOf(IntegerLiteral);
+		expect(expression.value).toBe(1337);
+		expect(expression.tokenLiteral()).toBe("1337");
 	});
 });
 

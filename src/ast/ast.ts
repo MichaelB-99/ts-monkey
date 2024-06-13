@@ -67,6 +67,7 @@ export class ReturnStatement implements Statement {
 
 export class ExpressionStatement implements Statement {
 	public expression: Expression | null = null;
+
 	constructor(public token: Token) {}
 	statementNode(): void {}
 	tokenLiteral(): string {
@@ -74,5 +75,17 @@ export class ExpressionStatement implements Statement {
 	}
 	string(): string {
 		return this.expression?.string() || "";
+	}
+}
+
+export class IntegerLiteral implements Expression {
+	public value: number | null = null;
+	constructor(public token: Token) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return this.token.literal;
 	}
 }
