@@ -104,3 +104,19 @@ export class PrefixExpression implements Expression {
 		return `(${this.operator}${this.rightExpression?.string()})`;
 	}
 }
+
+export class InfixExpression implements Expression {
+	public rightExpr: Expression | null = null;
+	constructor(
+		public token: Token,
+		public operator: string,
+		public leftExpr: Expression,
+	) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `(${this.leftExpr.string()}${this.operator}${this.rightExpr?.string()})`;
+	}
+}

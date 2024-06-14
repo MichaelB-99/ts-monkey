@@ -3,6 +3,7 @@ import {
 	type Expression,
 	ExpressionStatement,
 	Identifier,
+	InfixExpression,
 	IntegerLiteral,
 	LetStatement,
 	PrefixExpression,
@@ -94,6 +95,32 @@ describe("parser", () => {
 			expect(expr).toBeInstanceOf(PrefixExpression);
 			expect(expr.operator).toBe(operator);
 			expect(testIntegerLiteral(expr.rightExpression, integerValue)).toBe(true);
+		}
+	});
+	it("should parse infix expressions", () => {
+		const tests = [
+			{ input: "5 + 5;", operator: "+", integerValue: 5 },
+			{ input: "5 - 5;", operator: "-", integerValue: 5 },
+			{ input: "5 * 5;", operator: "*", integerValue: 5 },
+			{ input: "5 / 5;", operator: "/", integerValue: 5 },
+			{ input: "5 > 5;", operator: ">", integerValue: 5 },
+			{ input: "5 < 5;", operator: "<", integerValue: 5 },
+			{ input: "5 == 5;", operator: "==", integerValue: 5 },
+			{ input: "5 != 5;", operator: "!=", integerValue: 5 },
+		];
+		for (const { input, integerValue, operator } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as InfixExpression;
+			console.log(statement);
+			expect(expr).toBeInstanceOf(InfixExpression);
+			expect(expr.operator).toBe(operator);
+			expect(testIntegerLiteral(expr.rightExpr, integerValue)).toBe(true);
+			expect(testIntegerLiteral(expr.leftExpr, integerValue)).toBe(true);
 		}
 	});
 });
