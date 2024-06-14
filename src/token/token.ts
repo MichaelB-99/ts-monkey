@@ -11,7 +11,7 @@ export enum TokenType {
 	PLUS = "+",
 	MINUS = "-",
 	BANG = "!",
-	ASTERISK = "/",
+	ASTERISK = "*",
 	SLASH = "/",
 	LT = "<",
 	GT = ">",
