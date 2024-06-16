@@ -120,3 +120,16 @@ export class InfixExpression implements Expression {
 		return `(${this.leftExpr.string()} ${this.operator} ${this.rightExpr?.string()})`;
 	}
 }
+export class BooleanLiteral implements Expression {
+	constructor(
+		public token: Token,
+		public value: boolean,
+	) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return this.token.literal;
+	}
+}

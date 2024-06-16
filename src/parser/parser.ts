@@ -1,4 +1,5 @@
 import {
+	BooleanLiteral,
 	type Expression,
 	ExpressionStatement,
 	Identifier,
@@ -8,7 +9,6 @@ import {
 	PrefixExpression,
 	Program,
 	ReturnStatement,
-	type Statement,
 } from "../ast/ast";
 import type { Lexer } from "../lexer/lexer";
 import { type Token, TokenType } from "../token/token";
@@ -46,7 +46,8 @@ export class Parser {
 
 	constructor(private lexer: Lexer) {
 		this.registerPrefix(TokenType.IDENT, this.parseIdentifier);
-		this.registerPrefix(TokenType.IDENT, this.parseIdentifier);
+		this.registerPrefix(TokenType.TRUE, this.parseBoolean);
+		this.registerPrefix(TokenType.FALSE, this.parseBoolean);
 		this.registerPrefix(TokenType.INT, this.parseIntegerLiteral);
 		this.registerPrefix(TokenType.BANG, this.parsePrefixExpression);
 		this.registerPrefix(TokenType.MINUS, this.parsePrefixExpression);
@@ -155,6 +156,9 @@ export class Parser {
 		}
 		statement.value = value;
 		return statement;
+	};
+	parseBoolean = () => {
+		return new BooleanLiteral(this.currToken, this.currTokenIs(TokenType.TRUE));
 	};
 	parsePrefixExpression = () => {
 		const expr = new PrefixExpression(this.currToken, this.currToken.literal);
