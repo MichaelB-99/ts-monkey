@@ -3,17 +3,20 @@
 	"organizeImports": {
 		"enabled": true
 	},
-	"formatter":{
+	"formatter": {
 		"enabled": true
 	},
 	"linter": {
 		"enabled": true,
-		
+
 		"rules": {
-			"correctness":{
-				"noUnusedImports":{
-					"fix":"safe",
-					"level":"warn"
+			"style": {
+				"noNonNullAssertion": "off"
+			},
+			"correctness": {
+				"noUnusedImports": {
+					"fix": "safe",
+					"level": "warn"
 				}
 			},
 			"recommended": true
