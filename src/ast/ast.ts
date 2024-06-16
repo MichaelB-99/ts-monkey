@@ -117,6 +117,6 @@ export class InfixExpression implements Expression {
 		return this.token.literal;
 	}
 	string(): string {
-		return `(${this.leftExpr.string()}${this.operator}${this.rightExpr?.string()})`;
+		return `(${this.leftExpr.string()} ${this.operator} ${this.rightExpr?.string()})`;
 	}
 }
