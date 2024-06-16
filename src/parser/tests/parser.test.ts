@@ -123,6 +123,74 @@ describe("parser", () => {
 			expect(testIntegerLiteral(expr.leftExpr, integerValue)).toBe(true);
 		}
 	});
+
+	it("should take into account operator precedence", () => {
+		const tests = [
+			{ input: "2+3-4/2", expected: "((2 + 3) - (4 / 2))" },
+			{ input: "-a * b", expected: "((-a) * b)" },
+			{
+				input: "-a * b",
+				expected: "((-a) * b)",
+			},
+			{
+				input: "!-a",
+				expected: "(!(-a))",
+			},
+			{
+				input: "a + b + c",
+				expected: "((a + b) + c)",
+			},
+			{
+				input: "a + b - c",
+				expected: "((a + b) - c)",
+			},
+			{
+				input: "a * b * c",
+				expected: "((a * b) * c)",
+			},
+			{
+				input: "a * b / c",
+				expected: "((a * b) / c)",
+			},
+			{
+				input: "a + b / c",
+				expected: "(a + (b / c))",
+			},
+			{
+				input: "a + b * c + d / e - f",
+				expected: "(((a + (b * c)) + (d / e)) - f)",
+			},
+			{
+				input: "3 + 4; -5 * 5",
+				expected: "(3 + 4)((-5) * 5)",
+			},
+			{
+				input: "5 > 4 == 3 < 4",
+				expected: "((5 > 4) == (3 < 4))",
+			},
+			{
+				input: "5 < 4 != 3 > 4",
+				expected: "((5 < 4) != (3 > 4))",
+			},
+			{
+				input: "3 + 4 * 5 == 3 * 1 + 4 * 5",
+				expected: "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+			},
+			{
+				input: "3 + 4 * 5 == 3 * 1 + 4 * 5",
+				expected: "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+			},
+		];
+		for (const { input, expected } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			const statement = program.statements[0] as ExpressionStatement;
+			console.log(statement.expression);
+			console.log(program.string());
+			expect(program.string()).toBe(expected);
+		}
+	});
 });
 
 function testIntegerLiteral(intLiteral: Expression | null, value: number) {
