@@ -48,6 +48,7 @@ export class Parser {
 		this.registerPrefix(TokenType.IDENT, this.parseIdentifier);
 		this.registerPrefix(TokenType.TRUE, this.parseBoolean);
 		this.registerPrefix(TokenType.FALSE, this.parseBoolean);
+		this.registerPrefix(TokenType.LPAREN, this.parseGroupedExpression);
 		this.registerPrefix(TokenType.INT, this.parseIntegerLiteral);
 		this.registerPrefix(TokenType.BANG, this.parsePrefixExpression);
 		this.registerPrefix(TokenType.MINUS, this.parsePrefixExpression);
@@ -126,7 +127,6 @@ export class Parser {
 	noPrefixParseFnError = (type: TokenType) => {
 		this.errors.push(`no parse function found for type ${type}`);
 	};
-
 	parseExpression(precedence: Precedences) {
 		const prefixFn = this.prefixParseFnsMap[this.currToken.type];
 		if (!prefixFn) {
@@ -166,6 +166,7 @@ export class Parser {
 		expr.rightExpression = this.parseExpression(Precedences.PREFIX);
 		return expr;
 	};
+
 	parseInfixExpression = (left: Expression) => {
 		const expression = new InfixExpression(
 			this.currToken,
@@ -175,6 +176,14 @@ export class Parser {
 		const currPrecedence = this.currPrecedence();
 		this.nextToken();
 		expression.rightExpr = this.parseExpression(currPrecedence);
+		return expression;
+	};
+	parseGroupedExpression = () => {
+		this.nextToken();
+		const expression = this.parseExpression(Precedences.LOWEST);
+		if (!this.expectPeek(TokenType.RPAREN)) {
+			return null;
+		}
 		return expression;
 	};
 	currTokenIs(type: TokenType) {

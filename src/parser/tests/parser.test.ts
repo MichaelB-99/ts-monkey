@@ -213,7 +213,9 @@ describe("parser", () => {
 				input: "3 < 5 == true",
 				expected: "((3 < 5) == true)",
 			},
-			{ input: "1+-2*3 == true", expected: "((1 + ((-2) * 3)) == true)" },
+			{ input: "1+-2*3", expected: "(1 + ((-2) * 3))" },
+			{ input: "1+2+3+4", expected: "(((1 + 2) + 3) + 4)" },
+			{ input: "1+(2+3)+4", expected: "((1 + (2 + 3)) + 4)" },
 		];
 		for (const { input, expected } of tests) {
 			const parser = new Parser(new Lexer(input));
