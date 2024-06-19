@@ -4,6 +4,7 @@ import {
 	type Expression,
 	ExpressionStatement,
 	Identifier,
+	IfExpression,
 	InfixExpression,
 	IntegerLiteral,
 	LetStatement,
@@ -244,6 +245,57 @@ describe("parser", () => {
 			const expr = statement.expression as BooleanLiteral;
 			expect(expr).toBeInstanceOf(BooleanLiteral);
 			expect(expr.value).toBe(expected);
+		}
+	});
+	it("should parse if expressions", () => {
+		const tests = [{ input: "if (x < y) { x };" }];
+		for (const { input } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			console.log(statement);
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as IfExpression;
+			expect(expr).toBeInstanceOf(IfExpression);
+			testInfixExpression(expr.condition as InfixExpression, "x", "<", "y");
+
+			expect(expr.consequence?.statements).toHaveLength(1);
+			const consequence = expr.consequence
+				?.statements[0] as ExpressionStatement;
+			console.log(expr);
+			expect(expr.consequence?.statements[0]).toBeInstanceOf(
+				ExpressionStatement,
+			);
+
+			expect(consequence.expression).toBeInstanceOf(Identifier);
+			testIdentifier(consequence.expression!, "x");
+			expect(expr.alternative).toBeNull();
+		}
+	});
+	it("should parse if else expressions", () => {
+		const tests = [{ input: "if (x < y) { x } else { y }" }];
+		for (const { input } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			console.log(program);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			console.log(statement);
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as IfExpression;
+			expect(expr).toBeInstanceOf(IfExpression);
+			testInfixExpression(expr.condition as InfixExpression, "x", "<", "y");
+
+			expect(expr.alternative?.statements).toHaveLength(1);
+			const alternative = expr.alternative
+				?.statements[0] as ExpressionStatement;
+			expect(alternative).toBeInstanceOf(ExpressionStatement);
+			expect(alternative.expression).toBeInstanceOf(Identifier);
+			testIdentifier(alternative.expression!, "y");
+			expect(expr.alternative).not.toBeNull();
 		}
 	});
 });

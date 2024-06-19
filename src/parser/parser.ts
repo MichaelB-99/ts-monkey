@@ -1,8 +1,10 @@
 import {
+	BlockStatement,
 	BooleanLiteral,
 	type Expression,
 	ExpressionStatement,
 	Identifier,
+	IfExpression,
 	InfixExpression,
 	IntegerLiteral,
 	LetStatement,
@@ -52,6 +54,7 @@ export class Parser {
 		this.registerPrefix(TokenType.INT, this.parseIntegerLiteral);
 		this.registerPrefix(TokenType.BANG, this.parsePrefixExpression);
 		this.registerPrefix(TokenType.MINUS, this.parsePrefixExpression);
+		this.registerPrefix(TokenType.IF, this.parseIfExpression);
 		this.registerInfix(TokenType.PLUS, this.parseInfixExpression);
 		this.registerInfix(TokenType.MINUS, this.parseInfixExpression);
 		this.registerInfix(TokenType.SLASH, this.parseInfixExpression);
@@ -186,6 +189,39 @@ export class Parser {
 		}
 		return expression;
 	};
+	parseIfExpression = () => {
+		const expression = new IfExpression(this.currToken);
+		if (!this.expectPeek(TokenType.LPAREN)) {
+			return null;
+		}
+		this.nextToken();
+		expression.condition = this.parseExpression(Precedences.LOWEST);
+		if (!this.expectPeek(TokenType.RPAREN)) return null;
+		if (!this.expectPeek(TokenType.LBRACE)) return null;
+		expression.consequence = this.parseBlockStatement();
+		if (this.peekTokenIs(TokenType.ELSE)) {
+			this.nextToken();
+			if (!this.expectPeek(TokenType.LBRACE)) return null;
+			expression.alternative = this.parseBlockStatement();
+		}
+		return expression;
+	};
+	parseBlockStatement() {
+		const block = new BlockStatement(this.currToken);
+		this.nextToken();
+		while (
+			!this.currTokenIs(TokenType.RBRACE) &&
+			!this.currTokenIs(TokenType.EOF)
+		) {
+			const statement = this.parseStatement();
+			if (statement) {
+				block.statements.push(statement);
+			}
+			this.nextToken();
+		}
+
+		return block;
+	}
 	currTokenIs(type: TokenType) {
 		return this.currToken.type === type;
 	}

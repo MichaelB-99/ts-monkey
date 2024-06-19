@@ -133,3 +133,29 @@ export class BooleanLiteral implements Expression {
 		return this.token.literal;
 	}
 }
+
+export class IfExpression implements Expression {
+	public condition: Expression | null = null;
+	public consequence: BlockStatement | null = null;
+	public alternative: BlockStatement | null = null;
+
+	constructor(public token: Token) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `if ${this.condition?.string()} ${this.consequence?.string()} ${this.alternative ? `else ${this.alternative.string()}` : ""} `;
+	}
+}
+export class BlockStatement implements Statement {
+	public statements: Statement[] = [];
+	constructor(public token: Token) {}
+	statementNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return this.statements.map((s) => s.string()).join("");
+	}
+}
