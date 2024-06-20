@@ -3,6 +3,7 @@ import {
 	BooleanLiteral,
 	type Expression,
 	ExpressionStatement,
+	FunctionLiteral,
 	Identifier,
 	IfExpression,
 	InfixExpression,
@@ -296,6 +297,50 @@ describe("parser", () => {
 			expect(alternative.expression).toBeInstanceOf(Identifier);
 			testIdentifier(alternative.expression!, "y");
 			expect(expr.alternative).not.toBeNull();
+		}
+	});
+	it("should parse function literals", () => {
+		const input = "fn(x,y) { x + y; }";
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		expect(program.statements).toHaveLength(1);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		const expr = statement.expression as FunctionLiteral;
+		expect(expr).toBeInstanceOf(FunctionLiteral);
+		expect(expr.parameters).toHaveLength(2);
+		testLiteralExpression(expr.parameters![0], "x");
+		testLiteralExpression(expr.parameters![1], "y");
+		expect(expr.body?.statements).toHaveLength(1);
+		const bodyStatement = expr.body?.statements[0] as ExpressionStatement;
+		expect(bodyStatement).toBeInstanceOf(ExpressionStatement);
+		testInfixExpression(
+			bodyStatement.expression as InfixExpression,
+			"x",
+			"+",
+			"y",
+		);
+	});
+	it("should parse functions with different parameter lengths", () => {
+		const tests = [
+			{ input: "fn(){}", expected: [] },
+			{ input: "fn(x){}", expected: ["x"] },
+			{ input: "fn(x,y,z){}", expected: ["x", "y", "z"] },
+		];
+		for (const { input, expected } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as FunctionLiteral;
+			expect(expr).toBeInstanceOf(FunctionLiteral);
+			expect(expr.parameters).toHaveLength(expected.length);
+			expected.forEach((param, i) => {
+				testLiteralExpression(expr.parameters![i], param);
+			});
 		}
 	});
 });

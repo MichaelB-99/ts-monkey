@@ -159,3 +159,15 @@ export class BlockStatement implements Statement {
 		return this.statements.map((s) => s.string()).join("");
 	}
 }
+export class FunctionLiteral implements Expression {
+	public parameters: Identifier[] | null = null;
+	public body: BlockStatement | null = null;
+	constructor(public token: Token) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `${this.tokenLiteral()}(${this.parameters?.map((p) => p.string()).join(",")})${this.body?.string()}`;
+	}
+}
