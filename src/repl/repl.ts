@@ -1,17 +1,20 @@
 import { Lexer } from "../lexer/lexer";
-import { TokenType } from "../token/token";
+import { Parser } from "../parser/parser";
 export async function repl() {
 	prompt();
 	for await (const line of console) {
 		const lexer = new Lexer(line);
-		for (
-			let token = lexer.nextToken();
-			token.type !== TokenType.EOF;
-			token = lexer.nextToken()
-		) {
-			console.log(token);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+		if (parser.errors.length) {
+			printParserErrors(parser.errors);
+			continue;
 		}
+		console.log(program.string());
 		prompt();
 	}
 }
+const printParserErrors = (errors: string[]) => {
+	errors.forEach((e) => console.log(e));
+};
 const prompt = () => console.log(">>");
