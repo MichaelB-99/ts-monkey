@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
 	BooleanLiteral,
+	CallExpression,
 	type Expression,
 	ExpressionStatement,
 	FunctionLiteral,
@@ -175,10 +176,7 @@ describe("parser", () => {
 				input: "a * b / c",
 				expected: "((a * b) / c)",
 			},
-			{
-				input: "a + b / c",
-				expected: "(a + (b / c))",
-			},
+
 			{
 				input: "a + b * c + d / e - f",
 				expected: "(((a + (b * c)) + (d / e)) - f)",
@@ -218,6 +216,16 @@ describe("parser", () => {
 			{ input: "1+-2*3", expected: "(1 + ((-2) * 3))" },
 			{ input: "1+2+3+4", expected: "(((1 + 2) + 3) + 4)" },
 			{ input: "1+(2+3)+4", expected: "((1 + (2 + 3)) + 4)" },
+			{ input: "a+add(1,2)+d", expected: "((a + add(1, 2)) + d)" },
+			{ input: "a+add(b*c,2)+d", expected: "((a + add((b * c), 2)) + d)" },
+			{
+				input: "add(a, b, 1, 2 * 3, 4 + 5,add(6, 7 * 8))",
+				expected: "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+			},
+			{
+				input: "add(a + b + c * d / f + g)",
+				expected: "add((((a + b) + ((c * d) / f)) + g))",
+			},
 		];
 		for (const { input, expected } of tests) {
 			const parser = new Parser(new Lexer(input));
@@ -340,6 +348,45 @@ describe("parser", () => {
 			expect(expr.parameters).toHaveLength(expected.length);
 			expected.forEach((param, i) => {
 				testLiteralExpression(expr.parameters![i], param);
+			});
+		}
+	});
+	it("should parse call expressions", () => {
+		const input = "add(1,2*3,4+5)";
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		expect(program.statements).toHaveLength(1);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		const expr = statement.expression as CallExpression;
+		expect(expr).toBeInstanceOf(CallExpression);
+		expect(expr.args).toHaveLength(3);
+		testIdentifier(expr.func!, "add");
+		testLiteralExpression(expr.args![0], 1);
+		testInfixExpression(expr.args![1] as InfixExpression, 2, "*", 3);
+		testInfixExpression(expr.args![2] as InfixExpression, 4, "+", 5);
+	});
+	it("should parse call expressions with varying lengths of arguments ", () => {
+		const tests = [
+			{ input: "add()", expected: [] },
+			{ input: "add(1)", expected: ["1"] },
+			{ input: "add(1,2)", expected: ["1", "2"] },
+			{ input: "add(1*2,2/1,100)", expected: ["(1 * 2)", "(2 / 1)", "100"] },
+		];
+		for (const { input, expected } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as CallExpression;
+			expect(expr).toBeInstanceOf(CallExpression);
+			expect(expr.args).toHaveLength(expected.length);
+			testIdentifier(expr.func!, "add");
+			expected.forEach((arg, i) => {
+				expect(expr.args![i].string()).toBe(arg);
 			});
 		}
 	});

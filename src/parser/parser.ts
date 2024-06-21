@@ -1,6 +1,7 @@
 import {
 	BlockStatement,
 	BooleanLiteral,
+	CallExpression,
 	type Expression,
 	ExpressionStatement,
 	FunctionLiteral,
@@ -45,6 +46,7 @@ export class Parser {
 		"-": Precedences.SUM,
 		"*": Precedences.PRODUCT,
 		"/": Precedences.PRODUCT,
+		"(": Precedences.CALL,
 	};
 
 	constructor(private lexer: Lexer) {
@@ -65,6 +67,7 @@ export class Parser {
 		this.registerInfix(TokenType.NOT_EQ, this.parseInfixExpression);
 		this.registerInfix(TokenType.LT, this.parseInfixExpression);
 		this.registerInfix(TokenType.GT, this.parseInfixExpression);
+		this.registerInfix(TokenType.LPAREN, this.parseCallExpression);
 
 		this.nextToken();
 		this.nextToken();
@@ -236,6 +239,26 @@ export class Parser {
 		if (!this.expectPeek(TokenType.RPAREN)) return null;
 		return parameters;
 	}
+	parseCallExpression = (func: Expression) => {
+		return new CallExpression(this.currToken, func, this.parseCallArgs());
+	};
+	parseCallArgs = () => {
+		const args: Expression[] = [];
+		if (this.peekTokenIs(TokenType.RPAREN)) {
+			this.nextToken();
+			return args;
+		}
+		this.nextToken();
+		args.push(this.parseExpression(Precedences.LOWEST)!);
+
+		while (this.peekTokenIs(TokenType.COMMA)) {
+			this.nextToken();
+			this.nextToken();
+			args.push(this.parseExpression(Precedences.LOWEST)!);
+		}
+		if (!this.expectPeek(TokenType.RPAREN)) return null;
+		return args;
+	};
 	parseBlockStatement() {
 		const block = new BlockStatement(this.currToken);
 		this.nextToken();
