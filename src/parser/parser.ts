@@ -109,8 +109,10 @@ export class Parser {
 		if (!this.expectPeek(TokenType.ASSIGN)) {
 			return null;
 		}
-		// TODO: We're skipping the expressions until we encounter a semicolon
-		while (!this.currTokenIs(TokenType.SEMICOLON)) {
+
+		this.nextToken();
+		statement.value = this.parseExpression(Precedences.LOWEST);
+		if (this.peekTokenIs(TokenType.SEMICOLON)) {
 			this.nextToken();
 		}
 		return statement;
@@ -118,8 +120,8 @@ export class Parser {
 	parseReturnStatement() {
 		const statement = new ReturnStatement(this.currToken);
 		this.nextToken();
-		// TODO we are currently skipping expressions
-		while (!this.currTokenIs(TokenType.SEMICOLON)) {
+		statement.value = this.parseExpression(Precedences.LOWEST);
+		if (this.peekTokenIs(TokenType.SEMICOLON)) {
 			this.nextToken();
 		}
 		return statement;

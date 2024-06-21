@@ -18,42 +18,79 @@ import { Parser } from "../parser";
 
 describe("parser", () => {
 	it("should parse let statements", () => {
-		const input = `
-        let x = 5;
-        let y = 10;
-        let foobar = 838383; 
-        `;
-		const parser = new Parser(new Lexer(input));
-		const program = parser.parseProgram();
-		checkParserErrors(parser);
-		expect(program).not.toBeNull();
-		expect(program.statements).toHaveLength(3);
-		const tests = ["x", "y", "foobar"];
-		tests.forEach((test, i) => {
-			const statement = program.statements[i] as LetStatement;
-			expect(statement.tokenLiteral()).toBe("let");
-			expect(statement).toBeInstanceOf(LetStatement);
-			expect(statement.name?.value).toBe(test);
-			expect(statement.name?.tokenLiteral()).toBe(test);
+		const tests = [
+			{ input: "let x =5;", expectedIdentifier: "x", expectedValue: 5 },
+			{ input: "let y = true;", expectedIdentifier: "y", expectedValue: true },
+			{
+				input: "let foobar = y;",
+				expectedIdentifier: "foobar",
+				expectedValue: "y",
+			},
+		];
+		tests.forEach(({ input, expectedIdentifier, expectedValue }, i) => {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program).not.toBeNull();
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as LetStatement;
+			testLetStatement(statement, expectedIdentifier);
+			const value = statement.value;
+			testLiteralExpression(value!, expectedValue);
 		});
 	});
+	it("should parse let statements with call expressions", () => {
+		const tests = [
+			{ input: "let x = foo();", expected: "let x = foo();" },
+			{
+				input: "let y = map(list, fn(x){x});",
+				expected: "let y = map(list, fn(x){x});",
+			},
+		];
+		tests.forEach(({ input, expected }, i) => {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program).not.toBeNull();
+			expect(program.statements).toHaveLength(1);
+			expect(program.string()).toBe(expected);
+		});
+	});
+
 	it("should parse return statements", () => {
-		const input = `
-        return 5;
-        return  10;
-        return 993322;
-        `;
-		const parser = new Parser(new Lexer(input));
-		const program = parser.parseProgram();
-		checkParserErrors(parser);
-		expect(program).not.toBeNull();
-		expect(program.statements).toHaveLength(3);
-		const tests = ["5", "10", "993322"];
-		tests.forEach((_, i) => {
-			const statement = program.statements[i] as ReturnStatement;
+		const tests = [
+			{ input: "return 5", expectedValue: 5 },
+			{ input: "return true", expectedValue: true },
+			{ input: "return foobar", expectedValue: "foobar" },
+		];
+		for (const { input, expectedValue } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program).not.toBeNull();
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ReturnStatement;
 			expect(statement.tokenLiteral()).toBe("return");
 			expect(statement).toBeInstanceOf(ReturnStatement);
-		});
+			testLiteralExpression(statement.value!, expectedValue);
+		}
+	});
+	it("should parse return statements with call expressions", () => {
+		const tests = [
+			{ input: "return add(1,2)", expectedValue: "return add(1, 2);" },
+			{
+				input: "return map(list,fn(x){x})",
+				expectedValue: "return map(list, fn(x){x});",
+			},
+		];
+		for (const { input, expectedValue } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program).not.toBeNull();
+			expect(program.statements).toHaveLength(1);
+			expect(program.string()).toBe(expectedValue);
+		}
 	});
 	it("should parse identifiers", () => {
 		const input = "foobar";
@@ -425,6 +462,12 @@ function testLiteralExpression(
 		default:
 			throw new Error(`expected type ${typeof expected} not handled`);
 	}
+}
+function testLetStatement(statement: LetStatement, name: string) {
+	expect(statement.tokenLiteral()).toBe("let");
+	expect(statement).toBeInstanceOf(LetStatement);
+	expect(statement.name?.value).toBe(name);
+	expect(statement.name?.tokenLiteral()).toBe(name);
 }
 function testIdentifier(expression: Expression, value: string) {
 	expect(expression).toBeInstanceOf(Identifier);
