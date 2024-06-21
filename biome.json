@@ -13,6 +13,9 @@
 			"style": {
 				"noNonNullAssertion": "off"
 			},
+			"complexity": {
+				"noForEach": "off"
+			},
 			"correctness": {
 				"noUnusedImports": {
 					"fix": "safe",
