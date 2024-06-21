@@ -168,7 +168,7 @@ export class FunctionLiteral implements Expression {
 		return this.token.literal;
 	}
 	string(): string {
-		return `${this.tokenLiteral()}(${this.parameters?.map((p) => p.string()).join(",")})${this.body?.string()}`;
+		return `${this.tokenLiteral()}(${this.parameters?.map((p) => p.string()).join(",")}){${this.body?.string()}}`;
 	}
 }
 export class CallExpression implements Expression {
