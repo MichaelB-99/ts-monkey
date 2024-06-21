@@ -28,7 +28,7 @@ export class LetStatement implements Statement {
 	constructor(
 		public token: Token,
 		public name?: Identifier | null,
-		public value?: Identifier | null,
+		public value?: Expression | null,
 	) {}
 	statementNode() {}
 	tokenLiteral(): string {
