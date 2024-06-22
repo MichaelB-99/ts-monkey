@@ -16,12 +16,12 @@ import {
 } from "../ast/ast";
 import type { Lexer } from "../lexer/lexer";
 import { type Token, TokenType } from "../token/token";
+import type { Maybe } from "../utils/types";
 type PrefixParseFn = () => Maybe<Expression>;
 type InfixParseFn = (left: Expression) => Expression;
 type ParseFnsMap<T extends PrefixParseFn | InfixParseFn> = Partial<
 	Record<TokenType, T>
 >;
-type Maybe<T> = T | null;
 enum Precedences {
 	LOWEST = 0,
 	EQUALS = 1,
