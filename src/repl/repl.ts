@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import { evaluate } from "../eval/eval";
 import { Lexer } from "../lexer/lexer";
 import { Parser } from "../parser/parser";
 export async function repl() {
@@ -21,7 +22,10 @@ export async function repl() {
 			printParserErrors(parser.errors);
 			continue;
 		}
-		console.log(program.string());
+		const evaluated = evaluate(program);
+		if (evaluated) {
+			console.log(evaluated.inspect());
+		}
 		if (values.ast) {
 			console.log(program.statements);
 		}
