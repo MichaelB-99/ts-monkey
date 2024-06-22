@@ -34,7 +34,7 @@ const printParserErrors = (errors: string[]) => {
 	console.log("parser errors:");
 	errors.forEach((e) => console.log(e));
 };
-const prompt = () => console.log(">>");
+const prompt = () => process.stdout.write(">> ");
 
 const MONKEY_FACE = `
             __,__
