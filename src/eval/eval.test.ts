@@ -1,6 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { Lexer } from "../lexer/lexer";
-import { BooleanObject, IntegerObject } from "../object/object";
+import {
+	BooleanObject,
+	IntegerObject,
+	NULL_OBJ,
+	type NullObject,
+} from "../object/object";
 import { Parser } from "../parser/parser";
 import { evaluate } from "./eval";
 describe("eval", () => {
@@ -69,6 +74,25 @@ describe("eval", () => {
 			testBooleanObject(evaluated as BooleanObject, expected);
 		}
 	});
+	it("should evaluate if else expressions", () => {
+		const tests = [
+			{ input: "if(true){10}", expected: 10 },
+			{ input: "if (false) { 10 }", expected: null },
+			{ input: "if (1) { 10 }", expected: 10 },
+			{ input: "if (1 < 2) { 10 }", expected: 10 },
+			{ input: "if (1 > 2) { 10 }", expected: null },
+			{ input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
+			{ input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			if (typeof expected === "number") {
+				testIntegerObject(evaluated as IntegerObject, expected);
+			} else {
+				testNullObject(evaluated as NullObject);
+			}
+		}
+	});
 });
 
 function testEval(input: string) {
@@ -81,4 +105,8 @@ function testIntegerObject(integerObj: IntegerObject, expected: number) {
 function testBooleanObject(boolObj: BooleanObject, expected: boolean) {
 	expect(boolObj).toBeInstanceOf(BooleanObject);
 	expect(boolObj.value).toBe(expected);
+}
+
+function testNullObject(obj: NullObject) {
+	expect(obj).toBe(NULL_OBJ);
 }

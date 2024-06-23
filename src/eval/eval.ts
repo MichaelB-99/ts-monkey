@@ -1,6 +1,8 @@
 import {
+	BlockStatement,
 	BooleanLiteral,
 	ExpressionStatement,
+	IfExpression,
 	InfixExpression,
 	IntegerLiteral,
 	type Node,
@@ -41,6 +43,13 @@ export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
 		const left = evaluate(node.leftExpr);
 		const right = evaluate(node.rightExpr);
 		return evaluateInfixExpression(left, node.operator, right);
+	}
+	if (node instanceof BlockStatement) {
+		return evalStatements(node.statements);
+	}
+
+	if (node instanceof IfExpression) {
+		return evalIfExpression(node);
 	}
 	return null;
 }
@@ -141,5 +150,31 @@ const evalIntegerInfixExpression = (
 			return nativeBoolToBooleanObject(leftValue !== rightValue);
 		default:
 			return NULL_OBJ;
+	}
+};
+
+const evalIfExpression = (ifExpr: IfExpression) => {
+	const condition = evaluate(ifExpr.condition);
+	if (isTruthy(condition)) {
+		return evaluate(ifExpr.consequence);
+	}
+	if (ifExpr.alternative) {
+		return evaluate(ifExpr.alternative);
+	}
+	return NULL_OBJ;
+};
+const isTruthy = (obj: Maybe<InternalObject>) => {
+	switch (obj) {
+		case NULL_OBJ:
+			return false;
+
+		case TRUE_OBJ:
+			return true;
+
+		case FALSE_OBJ:
+			return false;
+
+		default:
+			return true;
 	}
 };
