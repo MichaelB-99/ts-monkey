@@ -1,6 +1,7 @@
 import {
 	BooleanLiteral,
 	ExpressionStatement,
+	InfixExpression,
 	IntegerLiteral,
 	type Node,
 	PrefixExpression,
@@ -15,6 +16,7 @@ import {
 	ObjectType,
 	TRUE_OBJ,
 } from "../object/object";
+import { TokenType } from "../token/token";
 import type { Maybe } from "../utils/types";
 
 export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
@@ -34,6 +36,11 @@ export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
 		const right = evaluate(node.rightExpression);
 		const expr = evaluatePrefixExpression(node.operator, right);
 		return expr;
+	}
+	if (node instanceof InfixExpression) {
+		const left = evaluate(node.leftExpr);
+		const right = evaluate(node.rightExpr);
+		return evaluateInfixExpression(left, node.operator, right);
 	}
 	return null;
 }
@@ -79,4 +86,60 @@ const evalMinusOperatorExpression = (right: Maybe<InternalObject>) => {
 	if (right?.type() !== ObjectType.INTEGER_OBJ) return NULL_OBJ;
 	const value = (right as IntegerObject).value;
 	return new IntegerObject(-value);
+};
+
+const evaluateInfixExpression = (
+	left: Maybe<InternalObject>,
+	operator: string,
+	right: Maybe<InternalObject>,
+) => {
+	if (
+		left?.type() === ObjectType.INTEGER_OBJ &&
+		right?.type() === ObjectType.INTEGER_OBJ
+	) {
+		return evalIntegerInfixExpression(left, operator, right);
+	}
+	if (operator === TokenType.EQ) {
+		return nativeBoolToBooleanObject(left === right);
+	}
+	if (operator === TokenType.NOT_EQ) {
+		return nativeBoolToBooleanObject(left !== right);
+	}
+	return NULL_OBJ;
+};
+
+const nativeBoolToBooleanObject = (bool: boolean) => {
+	return bool ? TRUE_OBJ : FALSE_OBJ;
+};
+const evalIntegerInfixExpression = (
+	left: Maybe<InternalObject>,
+	operator: string,
+	right: Maybe<InternalObject>,
+) => {
+	const leftValue = (left as IntegerObject).value;
+	const rightValue = (right as IntegerObject).value;
+	switch (operator) {
+		case "+":
+			return new IntegerObject(leftValue + rightValue);
+
+		case "-":
+			return new IntegerObject(leftValue - rightValue);
+
+		case "*":
+			return new IntegerObject(leftValue * rightValue);
+
+		case "/":
+			return new IntegerObject(leftValue / rightValue);
+
+		case "<":
+			return nativeBoolToBooleanObject(leftValue < rightValue);
+		case ">":
+			return nativeBoolToBooleanObject(leftValue > rightValue);
+		case "==":
+			return nativeBoolToBooleanObject(leftValue === rightValue);
+		case "!=":
+			return nativeBoolToBooleanObject(leftValue !== rightValue);
+		default:
+			return NULL_OBJ;
+	}
 };
