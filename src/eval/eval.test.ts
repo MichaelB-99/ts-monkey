@@ -8,6 +8,8 @@ describe("eval", () => {
 		const tests = [
 			{ input: "5", expected: 5 },
 			{ input: "10", expected: 10 },
+			{ input: "-5", expected: -5 },
+			{ input: "-10", expected: -10 },
 		];
 		for (const { expected, input } of tests) {
 			const evaluated = testEval(input);

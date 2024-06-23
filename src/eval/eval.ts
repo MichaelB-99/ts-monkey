@@ -12,6 +12,7 @@ import {
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
+	ObjectType,
 	TRUE_OBJ,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
@@ -30,7 +31,6 @@ export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
 		return node.value ? TRUE_OBJ : FALSE_OBJ;
 	}
 	if (node instanceof PrefixExpression) {
-		console.log("called");
 		const right = evaluate(node.rightExpression);
 		const expr = evaluatePrefixExpression(node.operator, right);
 		return expr;
@@ -53,7 +53,8 @@ const evaluatePrefixExpression = (
 	switch (operator) {
 		case "!":
 			return evalBangOperatorExpression(right);
-
+		case "-":
+			return evalMinusOperatorExpression(right);
 		default:
 			return NULL_OBJ;
 	}
@@ -72,4 +73,10 @@ const evalBangOperatorExpression = (right: Maybe<InternalObject>) => {
 		default:
 			return FALSE_OBJ;
 	}
+};
+
+const evalMinusOperatorExpression = (right: Maybe<InternalObject>) => {
+	if (right?.type() !== ObjectType.INTEGER_OBJ) return NULL_OBJ;
+	const value = (right as IntegerObject).value;
+	return new IntegerObject(-value);
 };
