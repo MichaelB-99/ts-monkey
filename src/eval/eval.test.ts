@@ -24,6 +24,20 @@ describe("eval", () => {
 			testBooleanObject(evaluated as BooleanObject, expected);
 		}
 	});
+	it("should evaluate bang operator", () => {
+		const tests = [
+			{ input: "!true", expected: false },
+			{ input: "!false", expected: true },
+			{ input: "!5", expected: false },
+			{ input: "!!true", expected: true },
+			{ input: "!!false", expected: false },
+			{ input: "!!5", expected: true },
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			testBooleanObject(evaluated as BooleanObject, expected);
+		}
+	});
 });
 
 function testEval(input: string) {
