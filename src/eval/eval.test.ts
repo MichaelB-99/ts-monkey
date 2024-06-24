@@ -93,6 +93,19 @@ describe("eval", () => {
 			}
 		}
 	});
+	it("should evaluate return statements", () => {
+		const tests = [
+			{ input: "return 10;", expected: 10 },
+			{ input: "return 10; 9;", expected: 10 },
+			{ input: "return 2 * 5; 9;", expected: 10 },
+			{ input: "9; return 2 * 5; 9;", expected: 10 },
+			{ input: "if(true){if(true){return 1} return 9}", expected: 1 },
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			testIntegerObject(evaluated as IntegerObject, expected);
+		}
+	});
 });
 
 function testEval(input: string) {

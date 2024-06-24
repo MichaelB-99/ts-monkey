@@ -8,6 +8,7 @@ import {
 	type Node,
 	PrefixExpression,
 	Program,
+	ReturnStatement,
 	type Statement,
 } from "../ast/ast";
 import {
@@ -16,6 +17,7 @@ import {
 	type InternalObject,
 	NULL_OBJ,
 	ObjectType,
+	ReturnValueObject,
 	TRUE_OBJ,
 } from "../object/object";
 import { TokenType } from "../token/token";
@@ -26,7 +28,7 @@ export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
 		return new IntegerObject(node.value!);
 	}
 	if (node instanceof Program) {
-		return evalStatements(node.statements);
+		return evalProgram(node.statements);
 	}
 	if (node instanceof ExpressionStatement) {
 		return evaluate(node.expression);
@@ -45,19 +47,28 @@ export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
 		return evaluateInfixExpression(left, node.operator, right);
 	}
 	if (node instanceof BlockStatement) {
-		return evalStatements(node.statements);
+		return evalBlockStatement(node);
 	}
 
 	if (node instanceof IfExpression) {
 		return evalIfExpression(node);
 	}
+	if (node instanceof ReturnStatement) {
+		const value = evaluate(node.value);
+		if (value) {
+			return new ReturnValueObject(value);
+		}
+	}
 	return null;
 }
 
-const evalStatements = (statements: Statement[]) => {
+const evalProgram = (statements: Statement[]) => {
 	let result: InternalObject | null = null;
 	for (const statement of statements) {
 		result = evaluate(statement);
+		if (result instanceof ReturnValueObject) {
+			return result.value;
+		}
 	}
 	return result;
 };
@@ -177,4 +188,16 @@ const isTruthy = (obj: Maybe<InternalObject>) => {
 		default:
 			return true;
 	}
+};
+
+const evalBlockStatement = (blockStatement: BlockStatement) => {
+	let result: InternalObject | null = null;
+
+	for (const statement of blockStatement.statements) {
+		result = evaluate(statement);
+		if (result?.type() === ObjectType.RETURN_VALUE_OBJ) {
+			return result;
+		}
+	}
+	return result;
 };

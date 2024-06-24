@@ -34,9 +34,20 @@ export class NullObject implements InternalObject {
 export enum ObjectType {
 	INTEGER_OBJ = "INTEGER",
 	BOOLEAN_OBJ = "BOOLEAN",
+	RETURN_VALUE_OBJ = "RETURN",
 	NULL_OBJ = "NULL",
 }
 
+export class ReturnValueObject implements InternalObject {
+	constructor(public value: InternalObject) {}
+
+	type(): ObjectType {
+		return ObjectType.RETURN_VALUE_OBJ;
+	}
+	inspect(): string {
+		return String(this.value);
+	}
+}
 export const TRUE_OBJ = new BooleanObject(true);
 export const FALSE_OBJ = new BooleanObject(false);
 export const NULL_OBJ = new NullObject();
