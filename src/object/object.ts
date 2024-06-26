@@ -36,6 +36,7 @@ export enum ObjectType {
 	BOOLEAN_OBJ = "BOOLEAN",
 	RETURN_VALUE_OBJ = "RETURN",
 	NULL_OBJ = "NULL",
+	ERROR_OBJ = "ERROR",
 }
 
 export class ReturnValueObject implements InternalObject {
@@ -46,6 +47,15 @@ export class ReturnValueObject implements InternalObject {
 	}
 	inspect(): string {
 		return String(this.value);
+	}
+}
+export class ErrorObject implements InternalObject {
+	constructor(public msg: string) {}
+	type(): ObjectType {
+		return ObjectType.ERROR_OBJ;
+	}
+	inspect(): string {
+		return `ERROR: ${this.msg}`;
 	}
 }
 export const TRUE_OBJ = new BooleanObject(true);

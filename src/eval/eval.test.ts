@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Lexer } from "../lexer/lexer";
 import {
 	BooleanObject,
+	ErrorObject,
 	IntegerObject,
 	NULL_OBJ,
 	type NullObject,
@@ -104,6 +105,53 @@ describe("eval", () => {
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
 			testIntegerObject(evaluated as IntegerObject, expected);
+		}
+	});
+	it("should handle errors", () => {
+		const tests = [
+			{
+				input: "5 + true;",
+				expected: "type mismatch: INTEGER + BOOLEAN",
+			},
+			{
+				input: "5 + true; 5;",
+				expected: "type mismatch: INTEGER + BOOLEAN",
+			},
+			{
+				input: "-true",
+				expected: "unknown operator: -BOOLEAN",
+			},
+			{
+				input: "true + false;",
+				expected: "unknown operator: BOOLEAN + BOOLEAN",
+			},
+			{
+				input: "5; true + false; 5",
+				expected: "unknown operator: BOOLEAN + BOOLEAN",
+			},
+			{
+				input: "if (10 > 1) { true + false; }",
+				expected: "unknown operator: BOOLEAN + BOOLEAN",
+			},
+			{
+				input: `
+				132
+				if (10 > 1) {
+				if (10 > 1) {
+				return true + false;
+				}
+				return 1;
+				}
+				`,
+				expected: "unknown operator: BOOLEAN + BOOLEAN",
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			expect(evaluated).toBeInstanceOf(ErrorObject);
+
+			console.log(input);
+			expect((evaluated as ErrorObject).msg).toBe(expected);
 		}
 	});
 });
