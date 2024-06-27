@@ -1,3 +1,6 @@
+import type { BlockStatement, Identifier } from "../ast/ast";
+import type { Environment } from "../eval/environment";
+
 export interface InternalObject {
 	type(): ObjectType;
 	inspect(): string;
@@ -35,6 +38,7 @@ export enum ObjectType {
 	INTEGER_OBJ = "INTEGER",
 	BOOLEAN_OBJ = "BOOLEAN",
 	RETURN_VALUE_OBJ = "RETURN",
+	FUNCTION_OBJ = "FUNCTION",
 	NULL_OBJ = "NULL",
 	ERROR_OBJ = "ERROR",
 }
@@ -58,6 +62,22 @@ export class ErrorObject implements InternalObject {
 		return `ERROR: ${this.msg}`;
 	}
 }
+export class FunctionObject implements InternalObject {
+	constructor(
+		public params: Identifier[],
+		public body: BlockStatement,
+		public env: Environment,
+	) {}
+	type(): ObjectType {
+		return ObjectType.FUNCTION_OBJ;
+	}
+	inspect(): string {
+		return `fn(${this.params.join(",")}){
+			${this.body.string()}
+		}`;
+	}
+}
+
 export const TRUE_OBJ = new BooleanObject(true);
 export const FALSE_OBJ = new BooleanObject(false);
 export const NULL_OBJ = new NullObject();

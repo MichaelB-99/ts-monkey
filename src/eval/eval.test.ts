@@ -3,6 +3,7 @@ import { Lexer } from "../lexer/lexer";
 import {
 	BooleanObject,
 	ErrorObject,
+	FunctionObject,
 	IntegerObject,
 	NULL_OBJ,
 	type NullObject,
@@ -166,6 +167,48 @@ describe("eval", () => {
 		for (const { input, expected } of tests) {
 			testIntegerObject(testEval(input) as IntegerObject, expected);
 		}
+	});
+	it("should evaluate functions", () => {
+		const input = "fn(x){x+2}";
+		const evaluated = testEval(input) as FunctionObject;
+		const params = evaluated.params;
+		expect(evaluated).toBeInstanceOf(FunctionObject);
+		expect(params).toHaveLength(1);
+		expect(params[0].string()).toBe("x");
+		const expectedBody = "(x + 2)";
+		expect(evaluated.body.string()).toBe(expectedBody);
+	});
+	it("should evaluate called functions", () => {
+		const tests = [
+			{ input: "let identity = fn(x) { x; }; identity(5);", expected: 5 },
+			{
+				input: "let identity = fn(x) { return x; }; identity(5);",
+				expected: 5,
+			},
+			{ input: "let double = fn(x) { x * 2; }; double(5);", expected: 10 },
+			{ input: "let add = fn(x, y) { x + y; }; add(5, 5);", expected: 10 },
+			{
+				input: "let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));",
+				expected: 20,
+			},
+			{ input: "fn(x) { x; }(5)", expected: 5 },
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			testIntegerObject(evaluated as IntegerObject, expected);
+		}
+	});
+	it("should evaluate closures", () => {
+		const input = `
+		let makeAdder = fn(x){
+			return fn(y){
+				return x + y;
+			}
+		}
+		let addFive = makeAdder(5)
+		addFive(10) 
+		`;
+		testIntegerObject(testEval(input) as IntegerObject, 15);
 	});
 });
 

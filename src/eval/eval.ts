@@ -1,7 +1,10 @@
 import {
 	BlockStatement,
 	BooleanLiteral,
+	CallExpression,
+	type Expression,
 	ExpressionStatement,
+	FunctionLiteral,
 	Identifier,
 	IfExpression,
 	InfixExpression,
@@ -16,6 +19,7 @@ import {
 import {
 	ErrorObject,
 	FALSE_OBJ,
+	FunctionObject,
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
@@ -25,7 +29,7 @@ import {
 } from "../object/object";
 import { TokenType } from "../token/token";
 import type { Maybe } from "../utils/types";
-import type { Environment } from "./environment";
+import { Environment } from "./environment";
 
 export function evaluate(
 	node: Maybe<Node>,
@@ -81,6 +85,21 @@ export function evaluate(
 	}
 	if (node instanceof Identifier) {
 		return evalIdentifier(node, env);
+	}
+	if (node instanceof FunctionLiteral) {
+		if (node.parameters && node.body) {
+			return new FunctionObject(node.parameters, node.body, env);
+		}
+		return new ErrorObject("malformed function");
+	}
+	if (node instanceof CallExpression) {
+		const func = evaluate(node.func, env);
+		if (isError(func)) return func;
+		const args = evalExpressions(node.args!, env);
+		if (args.length === 1 && isError(args.at(0))) {
+			return args.at(0);
+		}
+		return applyFunction(func, args);
 	}
 	return null;
 }
@@ -258,4 +277,44 @@ const evalIdentifier = (node: Identifier, env: Environment) => {
 		return new ErrorObject(`identifier not found: ${node.value}`);
 	}
 	return value;
+};
+const evalExpressions = (exprs: Expression[], env: Environment) => {
+	const result: Maybe<InternalObject>[] = [];
+	for (const expr of exprs) {
+		const evaluated = evaluate(expr, env);
+		if (isError(evaluated)) {
+			return [evaluated];
+		}
+		result.push(evaluated);
+	}
+	return result;
+};
+
+const applyFunction = (
+	func: Maybe<InternalObject>,
+	args: Maybe<InternalObject>[],
+) => {
+	if (!(func instanceof FunctionObject)) {
+		return new ErrorObject(`not a function: ${func?.type()}`);
+	}
+	const extendedEnv = extendFunctionEnv(func, args);
+	const evaluated = evaluate(func.body, extendedEnv);
+	return unwrapReturnValue(evaluated);
+};
+
+const extendFunctionEnv = (
+	func: FunctionObject,
+	args: Maybe<InternalObject>[],
+) => {
+	const env = Environment.newEnclosedEnvironment(func.env);
+	func.params.forEach((param, i) => {
+		env.set(param.value, args[i]);
+	});
+	return env;
+};
+const unwrapReturnValue = (obj: Maybe<InternalObject>) => {
+	if (obj instanceof ReturnValueObject) {
+		return obj.value;
+	}
+	return obj;
 };
