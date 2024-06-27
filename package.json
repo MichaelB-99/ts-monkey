@@ -1,12 +1,16 @@
 {
-  "name": "ts-monkey-interpreter",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "@biomejs/biome": "1.8.0",
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  }
+	"name": "ts-monkey-interpreter",
+	"module": "index.ts",
+	"type": "module",
+	"scripts": {
+		"repl": "bun run src/index.ts --repl",
+		"interpret": "bun run src/index.ts"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.8.0",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	}
 }
