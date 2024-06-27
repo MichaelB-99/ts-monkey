@@ -1,4 +1,5 @@
 import type { Token } from "../token/token";
+import type { Maybe } from "../utils/types";
 
 export interface Node {
 	tokenLiteral(): string;
@@ -54,7 +55,7 @@ export class Identifier implements Expression {
 }
 
 export class ReturnStatement implements Statement {
-	public value: Expression | null = null;
+	public value: Maybe<Expression> = null;
 	constructor(public token: Token) {}
 	statementNode(): void {}
 	tokenLiteral(): string {
@@ -66,7 +67,7 @@ export class ReturnStatement implements Statement {
 }
 
 export class ExpressionStatement implements Statement {
-	public expression: Expression | null = null;
+	public expression: Maybe<Expression> = null;
 
 	constructor(public token: Token) {}
 	statementNode(): void {}
@@ -91,7 +92,7 @@ export class IntegerLiteral implements Expression {
 }
 
 export class PrefixExpression implements Expression {
-	public rightExpression: Expression | null = null;
+	public rightExpression: Maybe<Expression> = null;
 	constructor(
 		public token: Token,
 		public operator: string,
@@ -106,7 +107,7 @@ export class PrefixExpression implements Expression {
 }
 
 export class InfixExpression implements Expression {
-	public rightExpr: Expression | null = null;
+	public rightExpr: Maybe<Expression> = null;
 	constructor(
 		public token: Token,
 		public operator: string,
@@ -135,7 +136,7 @@ export class BooleanLiteral implements Expression {
 }
 
 export class IfExpression implements Expression {
-	public condition: Expression | null = null;
+	public condition: Maybe<Expression> = null;
 	public consequence: BlockStatement | null = null;
 	public alternative: BlockStatement | null = null;
 
@@ -160,7 +161,7 @@ export class BlockStatement implements Statement {
 	}
 }
 export class FunctionLiteral implements Expression {
-	public parameters: Identifier[] | null = null;
+	public parameters: Maybe<Identifier[]> = null;
 	public body: BlockStatement | null = null;
 	constructor(public token: Token) {}
 	expressionNode(): void {}
