@@ -8,6 +8,7 @@ import {
 	type NullObject,
 } from "../object/object";
 import { Parser } from "../parser/parser";
+import { Environment } from "./environment";
 import { evaluate } from "./eval";
 describe("eval", () => {
 	it("should evaluate integer expressions", () => {
@@ -145,6 +146,7 @@ describe("eval", () => {
 				`,
 				expected: "unknown operator: BOOLEAN + BOOLEAN",
 			},
+			{ input: "foobar", expected: "identifier not found: foobar" },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -154,10 +156,24 @@ describe("eval", () => {
 			expect((evaluated as ErrorObject).msg).toBe(expected);
 		}
 	});
+	it("should evaluate let statements", () => {
+		const tests = [
+			{ input: "let a = 5; a;", expected: 5 },
+			{ input: "let a = 5 * 5; a;", expected: 25 },
+			{ input: "let a = 5; let b = a; b;", expected: 5 },
+			{ input: "let a = 5; let b = a; let c = a + b + 5; c;", expected: 15 },
+		];
+		for (const { input, expected } of tests) {
+			testIntegerObject(testEval(input) as IntegerObject, expected);
+		}
+	});
 });
 
 function testEval(input: string) {
-	return evaluate(new Parser(new Lexer(input)).parseProgram());
+	return evaluate(
+		new Parser(new Lexer(input)).parseProgram(),
+		new Environment(),
+	);
 }
 function testIntegerObject(integerObj: IntegerObject, expected: number) {
 	expect(integerObj).toBeInstanceOf(IntegerObject);

@@ -1,8 +1,10 @@
 import { parseArgs } from "node:util";
+import { Environment } from "../eval/environment";
 import { evaluate } from "../eval/eval";
 import { Lexer } from "../lexer/lexer";
 import { Parser } from "../parser/parser";
 export async function repl() {
+	const env = new Environment();
 	const { values } = parseArgs({
 		args: Bun.argv,
 		options: {
@@ -22,7 +24,7 @@ export async function repl() {
 			printParserErrors(parser.errors);
 			continue;
 		}
-		const evaluated = evaluate(program);
+		const evaluated = evaluate(program, env);
 		if (evaluated) {
 			console.log(evaluated.inspect());
 		}

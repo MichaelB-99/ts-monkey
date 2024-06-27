@@ -2,9 +2,11 @@ import {
 	BlockStatement,
 	BooleanLiteral,
 	ExpressionStatement,
+	Identifier,
 	IfExpression,
 	InfixExpression,
 	IntegerLiteral,
+	LetStatement,
 	type Node,
 	PrefixExpression,
 	Program,
@@ -23,56 +25,70 @@ import {
 } from "../object/object";
 import { TokenType } from "../token/token";
 import type { Maybe } from "../utils/types";
+import type { Environment } from "./environment";
 
-export function evaluate(node: Maybe<Node>): Maybe<InternalObject> {
+export function evaluate(
+	node: Maybe<Node>,
+	env: Environment,
+): Maybe<InternalObject> {
 	if (node instanceof IntegerLiteral) {
 		return new IntegerObject(node.value!);
 	}
 	if (node instanceof Program) {
-		return evalProgram(node.statements);
+		return evalProgram(node.statements, env);
 	}
 	if (node instanceof ExpressionStatement) {
-		return evaluate(node.expression);
+		return evaluate(node.expression, env);
 	}
 	if (node instanceof BooleanLiteral) {
 		return node.value ? TRUE_OBJ : FALSE_OBJ;
 	}
 	if (node instanceof PrefixExpression) {
-		const right = evaluate(node.rightExpression);
+		const right = evaluate(node.rightExpression, env);
 		if (isError(right)) return right;
 		const expr = evaluatePrefixExpression(node.operator, right);
 		return expr;
 	}
 	if (node instanceof InfixExpression) {
-		const left = evaluate(node.leftExpr);
-		const right = evaluate(node.rightExpr);
+		const left = evaluate(node.leftExpr, env);
+		const right = evaluate(node.rightExpr, env);
 		if (isError(left)) return left;
 		if (isError(right)) return right;
 
 		return evaluateInfixExpression(left, node.operator, right);
 	}
 	if (node instanceof BlockStatement) {
-		return evalBlockStatement(node);
+		return evalBlockStatement(node, env);
 	}
 
 	if (node instanceof IfExpression) {
-		return evalIfExpression(node);
+		return evalIfExpression(node, env);
+	}
+	if (node instanceof LetStatement) {
+		const value = evaluate(node.value, env);
+		if (isError(value)) {
+			return value;
+		}
+		env.set(node.name!.value, value);
 	}
 	if (node instanceof ReturnStatement) {
-		const value = evaluate(node.value);
+		const value = evaluate(node.value, env);
 		if (isError(value)) return value;
 
 		if (value) {
 			return new ReturnValueObject(value);
 		}
 	}
+	if (node instanceof Identifier) {
+		return evalIdentifier(node, env);
+	}
 	return null;
 }
 
-const evalProgram = (statements: Statement[]) => {
-	let result: InternalObject | null = null;
+const evalProgram = (statements: Statement[], env: Environment) => {
+	let result: Maybe<InternalObject> = null;
 	for (const statement of statements) {
-		result = evaluate(statement);
+		result = evaluate(statement, env);
 		if (result instanceof ErrorObject) {
 			return result;
 		}
@@ -187,15 +203,15 @@ const evalIntegerInfixExpression = (
 	}
 };
 
-const evalIfExpression = (ifExpr: IfExpression) => {
-	const condition = evaluate(ifExpr.condition);
+const evalIfExpression = (ifExpr: IfExpression, env: Environment) => {
+	const condition = evaluate(ifExpr.condition, env);
 	if (isError(condition)) return condition;
 
 	if (isTruthy(condition)) {
-		return evaluate(ifExpr.consequence);
+		return evaluate(ifExpr.consequence, env);
 	}
 	if (ifExpr.alternative) {
-		return evaluate(ifExpr.alternative);
+		return evaluate(ifExpr.alternative, env);
 	}
 	return NULL_OBJ;
 };
@@ -215,11 +231,14 @@ const isTruthy = (obj: Maybe<InternalObject>) => {
 	}
 };
 
-const evalBlockStatement = (blockStatement: BlockStatement) => {
-	let result: InternalObject | null = null;
+const evalBlockStatement = (
+	blockStatement: BlockStatement,
+	env: Environment,
+) => {
+	let result: Maybe<InternalObject> = null;
 
 	for (const statement of blockStatement.statements) {
-		result = evaluate(statement);
+		result = evaluate(statement, env);
 		if (
 			result?.type() === ObjectType.RETURN_VALUE_OBJ ||
 			result?.type() === ObjectType.ERROR_OBJ
@@ -232,3 +251,11 @@ const evalBlockStatement = (blockStatement: BlockStatement) => {
 
 const isError = (obj: Maybe<InternalObject>) =>
 	obj?.type() === ObjectType.ERROR_OBJ;
+
+const evalIdentifier = (node: Identifier, env: Environment) => {
+	const value = env.get(node.value);
+	if (!value) {
+		return new ErrorObject(`identifier not found: ${node.value}`);
+	}
+	return value;
+};
