@@ -171,11 +171,18 @@ const evaluateInfixExpression = (
 			`type mismatch: ${left?.type()} ${operator} ${right?.type()}`,
 		);
 	}
+
 	if (
 		left?.type() === ObjectType.INTEGER_OBJ &&
 		right?.type() === ObjectType.INTEGER_OBJ
 	) {
 		return evalIntegerInfixExpression(left, operator, right);
+	}
+	if (
+		left?.type() === ObjectType.STRING_OBJ &&
+		right?.type() === ObjectType.STRING_OBJ
+	) {
+		return evalStringInfixExpression(left, operator, right);
 	}
 	if (operator === TokenType.EQ) {
 		return nativeBoolToBooleanObject(left === right);
@@ -322,4 +329,18 @@ const unwrapReturnValue = (obj: Maybe<InternalObject>) => {
 		return obj.value;
 	}
 	return obj;
+};
+const evalStringInfixExpression = (
+	left: Maybe<InternalObject>,
+	operator: string,
+	right: Maybe<InternalObject>,
+) => {
+	if (operator !== "+")
+		return new ErrorObject(
+			`unknown operator: ${left?.type()} ${operator} ${right?.type()}`,
+		);
+	const leftValue = (left as StringObject).value;
+	const rightValue = (right as StringObject).value;
+
+	return new StringObject(leftValue + rightValue);
 };

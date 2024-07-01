@@ -149,6 +149,10 @@ describe("eval", () => {
 				expected: "unknown operator: BOOLEAN + BOOLEAN",
 			},
 			{ input: "foobar", expected: "identifier not found: foobar" },
+			{
+				input: `"hello" - "world"`,
+				expected: "unknown operator: STRING - STRING",
+			},
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -213,6 +217,12 @@ describe("eval", () => {
 	});
 	it("should evaluate string literals", () => {
 		const input = `"hello world"`;
+		const evaluated = testEval(input);
+		expect(evaluated).toBeInstanceOf(StringObject);
+		expect((evaluated as StringObject).value).toBe("hello world");
+	});
+	it("should evaluate concatenated strings ", () => {
+		const input = `"hello" + " " + "world"`;
 		const evaluated = testEval(input);
 		expect(evaluated).toBeInstanceOf(StringObject);
 		expect((evaluated as StringObject).value).toBe("hello world");
