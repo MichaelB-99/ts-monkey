@@ -1,5 +1,5 @@
-import { describe, it, expect } from "bun:test";
-import { TokenType, type Token } from "../../token/token";
+import { describe, expect, it } from "bun:test";
+import { TokenType } from "../../token/token";
 import { Lexer } from "../lexer";
 
 describe("lexer", () => {
@@ -43,6 +43,8 @@ describe("lexer", () => {
 
 			10==10;
 			10!=9;
+			"foobar"
+			"foo bar"
 		`;
 
 		const tests: { expectedType: TokenType; expectedLiteral: string }[] = [
@@ -119,6 +121,8 @@ describe("lexer", () => {
 			{ expectedType: TokenType.NOT_EQ, expectedLiteral: "!=" },
 			{ expectedType: TokenType.INT, expectedLiteral: "9" },
 			{ expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
+			{ expectedType: TokenType.STRING, expectedLiteral: "foobar" },
+			{ expectedType: TokenType.STRING, expectedLiteral: "foo bar" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);

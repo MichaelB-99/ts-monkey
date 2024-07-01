@@ -186,3 +186,16 @@ export class CallExpression implements Expression {
 		return `${this.func?.string()}(${this.args?.map((a) => a.string()).join(", ")})`;
 	}
 }
+export class StringLiteral implements Expression {
+	constructor(
+		public token: Token,
+		public value: string,
+	) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return this.token.literal;
+	}
+}

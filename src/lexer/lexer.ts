@@ -91,6 +91,9 @@ export class Lexer {
 				token = this.newToken(TokenType.GT, this.ch);
 				break;
 
+			case '"':
+				token = this.newToken(TokenType.STRING, this.readString());
+				break;
 			case 0: {
 				token = this.newToken(TokenType.EOF, "");
 				break;
@@ -157,5 +160,13 @@ export class Lexer {
 	peekChar() {
 		if (this.readPosition >= this.input.length) return 0;
 		return this.input[this.readPosition];
+	}
+	readString() {
+		this.readChar();
+		const position = this.position;
+		while (this.ch !== '"' && this.ch !== 0) {
+			this.readChar();
+		}
+		return this.input.slice(position, this.position);
 	}
 }

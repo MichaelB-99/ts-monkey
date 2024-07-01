@@ -12,6 +12,7 @@ import {
 	LetStatement,
 	PrefixExpression,
 	ReturnStatement,
+	StringLiteral,
 } from "../../ast/ast";
 import { Lexer } from "../../lexer/lexer";
 import { Parser } from "../parser";
@@ -427,6 +428,16 @@ describe("parser", () => {
 			});
 		}
 	});
+	it("should parse strings", () => {
+		const input = `"hello world"`;
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		expect(statement.expression).toBeInstanceOf(StringLiteral);
+		expect((statement.expression as StringLiteral).value).toBe("hello world");
+	});
 });
 
 function testIntegerLiteral(intLiteral: Expression | null, value: number) {
@@ -441,7 +452,6 @@ function checkParserErrors(parser: Parser) {
 		return;
 	}
 	console.error(`parser has ${parser.errors.length} errors`);
-	// biome-ignore lint/complexity/noForEach: <explanation>
 	parser.errors.forEach((e) => console.error("parser error", e));
 	throw new Error("");
 }

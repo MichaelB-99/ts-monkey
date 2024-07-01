@@ -5,6 +5,7 @@ export enum TokenType {
 	// identifiers & literals
 	IDENT = "IDENT",
 	INT = "INT",
+	STRING = "STRING",
 
 	//operators
 	ASSIGN = "=",

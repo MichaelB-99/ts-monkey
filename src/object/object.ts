@@ -39,6 +39,7 @@ export enum ObjectType {
 	BOOLEAN_OBJ = "BOOLEAN",
 	RETURN_VALUE_OBJ = "RETURN",
 	FUNCTION_OBJ = "FUNCTION",
+	STRING_OBJ = "STRING",
 	NULL_OBJ = "NULL",
 	ERROR_OBJ = "ERROR",
 }
@@ -77,7 +78,15 @@ export class FunctionObject implements InternalObject {
 		}`;
 	}
 }
-
+export class StringObject implements InternalObject {
+	constructor(public value: string) {}
+	type(): ObjectType {
+		return ObjectType.STRING_OBJ;
+	}
+	inspect(): string {
+		return this.value;
+	}
+}
 export const TRUE_OBJ = new BooleanObject(true);
 export const FALSE_OBJ = new BooleanObject(false);
 export const NULL_OBJ = new NullObject();

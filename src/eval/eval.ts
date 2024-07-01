@@ -15,6 +15,7 @@ import {
 	Program,
 	ReturnStatement,
 	type Statement,
+	StringLiteral,
 } from "../ast/ast";
 import {
 	ErrorObject,
@@ -25,6 +26,7 @@ import {
 	NULL_OBJ,
 	ObjectType,
 	ReturnValueObject,
+	StringObject,
 	TRUE_OBJ,
 } from "../object/object";
 import { TokenType } from "../token/token";
@@ -100,6 +102,9 @@ export function evaluate(
 			return args.at(0);
 		}
 		return applyFunction(func, args);
+	}
+	if (node instanceof StringLiteral) {
+		return new StringObject(node.value);
 	}
 	return null;
 }

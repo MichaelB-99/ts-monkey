@@ -7,6 +7,7 @@ import {
 	IntegerObject,
 	NULL_OBJ,
 	type NullObject,
+	StringObject,
 } from "../object/object";
 import { Parser } from "../parser/parser";
 import { Environment } from "./environment";
@@ -209,6 +210,12 @@ describe("eval", () => {
 		addFive(10) 
 		`;
 		testIntegerObject(testEval(input) as IntegerObject, 15);
+	});
+	it("should evaluate string literals", () => {
+		const input = `"hello world"`;
+		const evaluated = testEval(input);
+		expect(evaluated).toBeInstanceOf(StringObject);
+		expect((evaluated as StringObject).value).toBe("hello world");
 	});
 });
 
