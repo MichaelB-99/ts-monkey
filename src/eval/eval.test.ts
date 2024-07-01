@@ -227,6 +227,27 @@ describe("eval", () => {
 		expect(evaluated).toBeInstanceOf(StringObject);
 		expect((evaluated as StringObject).value).toBe("hello world");
 	});
+	it("should evaluate string comparison", () => {
+		const tests = [
+			{
+				input: `"hello" == "hello"`,
+				expected: true,
+			},
+			{
+				input: `"hello" != "world"`,
+				expected: true,
+			},
+			{
+				input: `"hello" == "world"`,
+				expected: false,
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			expect(evaluated).toBeInstanceOf(BooleanObject);
+			expect((evaluated as BooleanObject).value).toBe(expected);
+		}
+	});
 });
 
 function testEval(input: string) {

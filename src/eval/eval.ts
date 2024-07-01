@@ -335,12 +335,20 @@ const evalStringInfixExpression = (
 	operator: string,
 	right: Maybe<InternalObject>,
 ) => {
-	if (operator !== "+")
-		return new ErrorObject(
-			`unknown operator: ${left?.type()} ${operator} ${right?.type()}`,
-		);
 	const leftValue = (left as StringObject).value;
 	const rightValue = (right as StringObject).value;
+	switch (operator) {
+		case "+":
+			return new StringObject(leftValue + rightValue);
 
-	return new StringObject(leftValue + rightValue);
+		case "==":
+			return leftValue === rightValue ? TRUE_OBJ : FALSE_OBJ;
+
+		case "!=":
+			return leftValue !== rightValue ? TRUE_OBJ : FALSE_OBJ;
+		default:
+			return new ErrorObject(
+				`unknown operator: ${left?.type()} ${operator} ${right?.type()}`,
+			);
+	}
 };
