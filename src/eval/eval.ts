@@ -196,6 +196,11 @@ const evaluateInfixExpression = (
 		const rightValue = (right as BooleanObject).value;
 		return nativeBoolToBooleanObject(leftValue || rightValue);
 	}
+	if (left?.type() === ObjectType.BOOLEAN_OBJ && operator === TokenType.AND) {
+		const leftValue = (left as BooleanObject).value;
+		const rightValue = (right as BooleanObject).value;
+		return nativeBoolToBooleanObject(leftValue && rightValue);
+	}
 
 	return new ErrorObject(
 		`unknown operator: ${left?.type()} ${operator} ${right?.type()}`,

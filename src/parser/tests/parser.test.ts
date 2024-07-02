@@ -177,6 +177,12 @@ describe("parser", () => {
 				operator: "||",
 				rightValue: true,
 			},
+			{
+				input: "true && false",
+				leftValue: true,
+				operator: "&&",
+				rightValue: false,
+			},
 		];
 		for (const { input, leftValue, operator, rightValue } of tests) {
 			const parser = new Parser(new Lexer(input));

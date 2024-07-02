@@ -50,6 +50,7 @@ export class Parser {
 		"/": Precedences.PRODUCT,
 		"(": Precedences.CALL,
 		"||": Precedences.LOGICAL,
+		"&&": Precedences.LOGICAL,
 	};
 
 	constructor(private lexer: Lexer) {
@@ -72,6 +73,7 @@ export class Parser {
 		this.registerInfix(TokenType.LT, this.parseInfixExpression);
 		this.registerInfix(TokenType.GT, this.parseInfixExpression);
 		this.registerInfix(TokenType.OR, this.parseInfixExpression);
+		this.registerInfix(TokenType.AND, this.parseInfixExpression);
 		this.registerInfix(TokenType.LPAREN, this.parseCallExpression);
 		this.nextToken();
 		this.nextToken();

@@ -104,6 +104,15 @@ export class Lexer {
 					token = this.newToken(TokenType.ILLEGAL, this.ch);
 				}
 				break;
+			case "&":
+				if (this.peekChar() === "&") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.AND, currChar + this.ch);
+				} else {
+					token = this.newToken(TokenType.ILLEGAL, this.ch);
+				}
+				break;
 			case 0: {
 				token = this.newToken(TokenType.EOF, "");
 				break;

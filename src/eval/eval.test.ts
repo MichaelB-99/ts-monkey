@@ -273,6 +273,31 @@ describe("eval", () => {
 			expect((evaluated as BooleanObject).value).toBe(expected);
 		}
 	});
+	it("should evaluate logical AND operator", () => {
+		const tests = [
+			{
+				input: "true && true",
+				expected: true,
+			},
+			{
+				input: "true && false",
+				expected: false,
+			},
+			{
+				input: "false && false",
+				expected: false,
+			},
+			{
+				input: "100>99 && true==true",
+				expected: true,
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			expect(evaluated).toBeInstanceOf(BooleanObject);
+			expect((evaluated as BooleanObject).value).toBe(expected);
+		}
+	});
 });
 
 function testEval(input: string) {
