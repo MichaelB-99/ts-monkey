@@ -153,6 +153,10 @@ describe("eval", () => {
 				input: `"hello" - "world"`,
 				expected: "unknown operator: STRING - STRING",
 			},
+			{
+				input: `"hello" || false`,
+				expected: "type mismatch: STRING || BOOLEAN",
+			},
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -240,6 +244,27 @@ describe("eval", () => {
 			{
 				input: `"hello" == "world"`,
 				expected: false,
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			expect(evaluated).toBeInstanceOf(BooleanObject);
+			expect((evaluated as BooleanObject).value).toBe(expected);
+		}
+	});
+	it("should evaluate logical OR operator", () => {
+		const tests = [
+			{
+				input: "false || true",
+				expected: true,
+			},
+			{
+				input: "false || false",
+				expected: false,
+			},
+			{
+				input: "true || false",
+				expected: true,
 			},
 		];
 		for (const { input, expected } of tests) {

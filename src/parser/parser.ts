@@ -26,7 +26,8 @@ type ParseFnsMap<T extends PrefixParseFn | InfixParseFn> = Partial<
 enum Precedences {
 	LOWEST = 0,
 	EQUALS = 1,
-	LESSGREATER = 2,
+	LOGICAL = 2,
+	LESSGREATER = 3,
 	SUM = 3,
 	PRODUCT = 4,
 	PREFIX = 5,
@@ -48,6 +49,7 @@ export class Parser {
 		"*": Precedences.PRODUCT,
 		"/": Precedences.PRODUCT,
 		"(": Precedences.CALL,
+		"||": Precedences.LOGICAL,
 	};
 
 	constructor(private lexer: Lexer) {
@@ -69,8 +71,8 @@ export class Parser {
 		this.registerInfix(TokenType.NOT_EQ, this.parseInfixExpression);
 		this.registerInfix(TokenType.LT, this.parseInfixExpression);
 		this.registerInfix(TokenType.GT, this.parseInfixExpression);
+		this.registerInfix(TokenType.OR, this.parseInfixExpression);
 		this.registerInfix(TokenType.LPAREN, this.parseCallExpression);
-
 		this.nextToken();
 		this.nextToken();
 	}

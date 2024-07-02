@@ -94,6 +94,16 @@ export class Lexer {
 			case '"':
 				token = this.newToken(TokenType.STRING, this.readString());
 				break;
+
+			case "|":
+				if (this.peekChar() === "|") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.OR, currChar + this.ch);
+				} else {
+					token = this.newToken(TokenType.ILLEGAL, this.ch);
+				}
+				break;
 			case 0: {
 				token = this.newToken(TokenType.EOF, "");
 				break;

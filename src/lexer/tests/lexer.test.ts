@@ -45,6 +45,7 @@ describe("lexer", () => {
 			10!=9;
 			"foobar"
 			"foo bar"
+			false || true
 		`;
 
 		const tests: { expectedType: TokenType; expectedLiteral: string }[] = [
@@ -123,6 +124,9 @@ describe("lexer", () => {
 			{ expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
 			{ expectedType: TokenType.STRING, expectedLiteral: "foobar" },
 			{ expectedType: TokenType.STRING, expectedLiteral: "foo bar" },
+			{ expectedType: TokenType.FALSE, expectedLiteral: "false" },
+			{ expectedType: TokenType.OR, expectedLiteral: "||" },
+			{ expectedType: TokenType.TRUE, expectedLiteral: "true" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);

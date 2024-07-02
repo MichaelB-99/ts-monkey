@@ -18,6 +18,7 @@ import {
 	StringLiteral,
 } from "../ast/ast";
 import {
+	type BooleanObject,
 	ErrorObject,
 	FALSE_OBJ,
 	FunctionObject,
@@ -189,6 +190,11 @@ const evaluateInfixExpression = (
 	}
 	if (operator === TokenType.NOT_EQ) {
 		return nativeBoolToBooleanObject(left !== right);
+	}
+	if (left?.type() === ObjectType.BOOLEAN_OBJ && operator === TokenType.OR) {
+		const leftValue = (left as BooleanObject).value;
+		const rightValue = (right as BooleanObject).value;
+		return nativeBoolToBooleanObject(leftValue || rightValue);
 	}
 
 	return new ErrorObject(
