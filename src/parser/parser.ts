@@ -43,7 +43,9 @@ export class Parser {
 		"==": Precedences.EQUALS,
 		"!=": Precedences.EQUALS,
 		">": Precedences.LESSGREATER,
+		">=": Precedences.LESSGREATER,
 		"<": Precedences.LESSGREATER,
+		"<=": Precedences.LESSGREATER,
 		"+": Precedences.SUM,
 		"-": Precedences.SUM,
 		"*": Precedences.PRODUCT,
@@ -71,7 +73,9 @@ export class Parser {
 		this.registerInfix(TokenType.EQ, this.parseInfixExpression);
 		this.registerInfix(TokenType.NOT_EQ, this.parseInfixExpression);
 		this.registerInfix(TokenType.LT, this.parseInfixExpression);
+		this.registerInfix(TokenType.LTE, this.parseInfixExpression);
 		this.registerInfix(TokenType.GT, this.parseInfixExpression);
+		this.registerInfix(TokenType.GTE, this.parseInfixExpression);
 		this.registerInfix(TokenType.OR, this.parseInfixExpression);
 		this.registerInfix(TokenType.AND, this.parseInfixExpression);
 		this.registerInfix(TokenType.LPAREN, this.parseCallExpression);

@@ -85,10 +85,22 @@ export class Lexer {
 				break;
 
 			case "<":
-				token = this.newToken(TokenType.LT, this.ch);
+				if (this.peekChar() === "=") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.LTE, currChar + this.ch);
+				} else {
+					token = this.newToken(TokenType.LT, this.ch);
+				}
 				break;
 			case ">":
-				token = this.newToken(TokenType.GT, this.ch);
+				if (this.peekChar() === "=") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.GTE, currChar + this.ch);
+				} else {
+					token = this.newToken(TokenType.GT, this.ch);
+				}
 				break;
 
 			case '"':

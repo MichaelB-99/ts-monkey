@@ -157,6 +157,14 @@ describe("eval", () => {
 				input: `"hello" || false`,
 				expected: "type mismatch: STRING || BOOLEAN",
 			},
+			{
+				input: "5 <= false",
+				expected: "type mismatch: INTEGER <= BOOLEAN",
+			},
+			{
+				input: `5 >= "hi"`,
+				expected: "type mismatch: INTEGER >= STRING",
+			},
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -290,6 +298,31 @@ describe("eval", () => {
 			{
 				input: "100>99 && true==true",
 				expected: true,
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			expect(evaluated).toBeInstanceOf(BooleanObject);
+			expect((evaluated as BooleanObject).value).toBe(expected);
+		}
+	});
+	it("should evaluate less than or equal and greater than or equal operators", () => {
+		const tests = [
+			{
+				input: "5>=5",
+				expected: true,
+			},
+			{
+				input: "10>=9",
+				expected: true,
+			},
+			{
+				input: "100<=200",
+				expected: true,
+			},
+			{
+				input: "200<=100",
+				expected: false,
 			},
 		];
 		for (const { input, expected } of tests) {

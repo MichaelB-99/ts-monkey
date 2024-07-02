@@ -183,6 +183,18 @@ describe("parser", () => {
 				operator: "&&",
 				rightValue: false,
 			},
+			{
+				input: "5 <= 5",
+				leftValue: 5,
+				operator: "<=",
+				rightValue: 5,
+			},
+			{
+				input: "5 >= 5",
+				leftValue: 5,
+				operator: ">=",
+				rightValue: 5,
+			},
 		];
 		for (const { input, leftValue, operator, rightValue } of tests) {
 			const parser = new Parser(new Lexer(input));

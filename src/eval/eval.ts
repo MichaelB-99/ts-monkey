@@ -232,8 +232,12 @@ const evalIntegerInfixExpression = (
 
 		case "<":
 			return nativeBoolToBooleanObject(leftValue < rightValue);
+		case "<=":
+			return nativeBoolToBooleanObject(leftValue <= rightValue);
 		case ">":
 			return nativeBoolToBooleanObject(leftValue > rightValue);
+		case ">=":
+			return nativeBoolToBooleanObject(leftValue >= rightValue);
 		case "==":
 			return nativeBoolToBooleanObject(leftValue === rightValue);
 		case "!=":

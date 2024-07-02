@@ -47,6 +47,8 @@ describe("lexer", () => {
 			"foo bar"
 			false || true
 			true && false
+			5>=5
+			1<=1
 		`;
 
 		const tests: { expectedType: TokenType; expectedLiteral: string }[] = [
@@ -131,6 +133,12 @@ describe("lexer", () => {
 			{ expectedType: TokenType.TRUE, expectedLiteral: "true" },
 			{ expectedType: TokenType.AND, expectedLiteral: "&&" },
 			{ expectedType: TokenType.FALSE, expectedLiteral: "false" },
+			{ expectedType: TokenType.INT, expectedLiteral: "5" },
+			{ expectedType: TokenType.GTE, expectedLiteral: ">=" },
+			{ expectedType: TokenType.INT, expectedLiteral: "5" },
+			{ expectedType: TokenType.INT, expectedLiteral: "1" },
+			{ expectedType: TokenType.LTE, expectedLiteral: "<=" },
+			{ expectedType: TokenType.INT, expectedLiteral: "1" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);
