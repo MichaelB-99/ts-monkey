@@ -1,5 +1,6 @@
 import type { BlockStatement, Identifier } from "../ast/ast";
 import type { Environment } from "../eval/environment";
+import type { Maybe } from "../utils/types";
 
 export interface InternalObject {
 	type(): ObjectType;
@@ -42,6 +43,7 @@ export enum ObjectType {
 	STRING_OBJ = "STRING",
 	NULL_OBJ = "NULL",
 	ERROR_OBJ = "ERROR",
+	BUILT_IN_OBJ = "BUILTIN",
 }
 
 export class ReturnValueObject implements InternalObject {
@@ -85,6 +87,18 @@ export class StringObject implements InternalObject {
 	}
 	inspect(): string {
 		return this.value;
+	}
+}
+type BuiltinFunction = (
+	...args: Maybe<InternalObject>[]
+) => Maybe<InternalObject>;
+export class BuiltInObject implements InternalObject {
+	constructor(public fn: BuiltinFunction) {}
+	type(): ObjectType {
+		return ObjectType.BUILT_IN_OBJ;
+	}
+	inspect(): string {
+		return "builtin function";
 	}
 }
 export const TRUE_OBJ = new BooleanObject(true);

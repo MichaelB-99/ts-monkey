@@ -19,6 +19,7 @@ import {
 } from "../ast/ast";
 import {
 	type BooleanObject,
+	BuiltInObject,
 	ErrorObject,
 	FALSE_OBJ,
 	FunctionObject,
@@ -32,6 +33,7 @@ import {
 } from "../object/object";
 import { TokenType } from "../token/token";
 import type { Maybe } from "../utils/types";
+import { builtins } from "./builtins";
 import { Environment } from "./environment";
 
 export function evaluate(
@@ -300,10 +302,13 @@ const isError = (obj: Maybe<InternalObject>) =>
 
 const evalIdentifier = (node: Identifier, env: Environment) => {
 	const value = env.get(node.value);
-	if (!value) {
-		return new ErrorObject(`identifier not found: ${node.value}`);
+	if (value) {
+		return value;
 	}
-	return value;
+	if (builtins[node.value]) {
+		return builtins[node.value];
+	}
+	return new ErrorObject(`identifier not found: ${node.value}`);
 };
 const evalExpressions = (exprs: Expression[], env: Environment) => {
 	const result: Maybe<InternalObject>[] = [];
@@ -321,12 +326,15 @@ const applyFunction = (
 	func: Maybe<InternalObject>,
 	args: Maybe<InternalObject>[],
 ) => {
-	if (!(func instanceof FunctionObject)) {
-		return new ErrorObject(`not a function: ${func?.type()}`);
+	if (func instanceof FunctionObject) {
+		const extendedEnv = extendFunctionEnv(func, args);
+		const evaluated = evaluate(func.body, extendedEnv);
+		return unwrapReturnValue(evaluated);
 	}
-	const extendedEnv = extendFunctionEnv(func, args);
-	const evaluated = evaluate(func.body, extendedEnv);
-	return unwrapReturnValue(evaluated);
+	if (func instanceof BuiltInObject) {
+		return func.fn(...args);
+	}
+	return new ErrorObject(`not a function: ${func?.type()}`);
 };
 
 const extendFunctionEnv = (

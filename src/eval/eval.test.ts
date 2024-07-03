@@ -331,6 +331,37 @@ describe("eval", () => {
 			expect((evaluated as BooleanObject).value).toBe(expected);
 		}
 	});
+	it("should evaluate builtin functions", () => {
+		const tests = [
+			{ input: `len("")`, expected: 0 },
+			{ input: `len("four")`, expected: 4 },
+			{ input: `len("hello world")`, expected: 11 },
+			{
+				input: "len(1)",
+				expected: "argument to 'len' not supported, got INTEGER",
+			},
+			{
+				input: `len("one", "two")`,
+				expected: "wrong number of arguments. got=2, want=1",
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+
+			switch (typeof expected) {
+				case "number":
+					testIntegerObject(evaluated as IntegerObject, expected);
+					break;
+
+				case "string":
+					expect(evaluated).toBeInstanceOf(ErrorObject);
+					expect((evaluated as ErrorObject).msg).toBe(expected);
+					break;
+				default:
+					break;
+			}
+		}
+	});
 });
 
 function testEval(input: string) {
