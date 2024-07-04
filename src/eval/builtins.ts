@@ -1,4 +1,5 @@
 import {
+	type ArrayObject,
 	BuiltInObject,
 	ErrorObject,
 	IntegerObject,
@@ -12,11 +13,17 @@ export const builtins: Record<string, BuiltInObject> = {
 				`wrong number of arguments. got=${args.length}, want=1`,
 			);
 		}
-		if (args[0]?.type() !== ObjectType.STRING_OBJ) {
-			return new ErrorObject(
-				`argument to 'len' not supported, got ${args[0]!.type()}`,
-			);
+		const arg = args[0];
+		switch (arg?.type()) {
+			case ObjectType.STRING_OBJ:
+				return new IntegerObject(arg!.inspect().length);
+
+			case ObjectType.ARRAY_OBJ:
+				return new IntegerObject((arg as ArrayObject).elements.length);
+			default:
+				return new ErrorObject(
+					`argument to 'len' not supported, got ${args[0]!.type()}`,
+				);
 		}
-		return new IntegerObject(args[0].inspect().length);
 	}),
 };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Lexer } from "../lexer/lexer";
 import {
+	ArrayObject,
 	BooleanObject,
 	ErrorObject,
 	FunctionObject,
@@ -344,6 +345,7 @@ describe("eval", () => {
 				input: `len("one", "two")`,
 				expected: "wrong number of arguments. got=2, want=1",
 			},
+			{ input: "len([1,2])", expected: 2 },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -359,6 +361,76 @@ describe("eval", () => {
 					break;
 				default:
 					break;
+			}
+		}
+	});
+	it("should evaluate array literals", () => {
+		const input = "[1,2*2,3+3]";
+		const evaluated = testEval(input) as ArrayObject;
+		expect(evaluated).toBeInstanceOf(ArrayObject);
+		testIntegerObject(evaluated.elements[0] as IntegerObject, 1);
+		testIntegerObject(evaluated.elements[1] as IntegerObject, 4);
+		testIntegerObject(evaluated.elements[2] as IntegerObject, 6);
+	});
+	it("should evaluate index expressions", () => {
+		const tests = [
+			{
+				input: "[1, 2, 3][0]",
+
+				expected: 1,
+			},
+			{
+				input: "[1, 2, 3][1]",
+
+				expected: 2,
+			},
+			{
+				input: "[1, 2, 3][2]",
+
+				expected: 3,
+			},
+			{
+				input: "let i = 0; [1][i];",
+
+				expected: 1,
+			},
+			{
+				input: "[1, 2, 3][1 + 1];",
+
+				expected: 3,
+			},
+			{
+				input: "let myArray = [1, 2, 3]; myArray[2];",
+
+				expected: 3,
+			},
+			{
+				input: "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+
+				expected: 6,
+			},
+			{
+				input: "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+
+				expected: 2,
+			},
+			{
+				input: "[1, 2, 3][3]",
+
+				expected: null,
+			},
+			{
+				input: "[1, 2, 3][-1]",
+
+				expected: null,
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			if (evaluated instanceof IntegerObject) {
+				testIntegerObject(evaluated, expected!);
+			} else {
+				testNullObject(evaluated as NullObject);
 			}
 		}
 	});

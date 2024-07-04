@@ -1,4 +1,5 @@
 import {
+	ArrayLiteral,
 	BlockStatement,
 	BooleanLiteral,
 	CallExpression,
@@ -7,6 +8,7 @@ import {
 	FunctionLiteral,
 	Identifier,
 	IfExpression,
+	IndexExpression,
 	InfixExpression,
 	IntegerLiteral,
 	LetStatement,
@@ -18,6 +20,7 @@ import {
 	StringLiteral,
 } from "../ast/ast";
 import {
+	ArrayObject,
 	type BooleanObject,
 	BuiltInObject,
 	ErrorObject,
@@ -106,8 +109,21 @@ export function evaluate(
 		}
 		return applyFunction(func, args);
 	}
+	if (node instanceof ArrayLiteral) {
+		const elements = evalExpressions(node.elements!, env);
+		if (elements.length === 1 && isError(elements[0])) {
+			return elements[0];
+		}
+		return new ArrayObject(elements);
+	}
 	if (node instanceof StringLiteral) {
 		return new StringObject(node.value);
+	}
+	if (node instanceof IndexExpression) {
+		const left = evaluate(node.left, env);
+		if (isError(left)) return left;
+		const index = evaluate(node.index, env);
+		return evalIndexExpression(left, index);
 	}
 	return null;
 }
@@ -374,4 +390,21 @@ const evalStringInfixExpression = (
 				`unknown operator: ${left?.type()} ${operator} ${right?.type()}`,
 			);
 	}
+};
+const evalIndexExpression = (
+	left: Maybe<InternalObject>,
+	index: Maybe<InternalObject>,
+) => {
+	if (left instanceof ArrayObject && index?.type() === ObjectType.INTEGER_OBJ) {
+		return evalArrayIndexExpression(left, index as IntegerObject);
+	}
+	return new ErrorObject(`index operator not supported: ${left?.type()}`);
+};
+const evalArrayIndexExpression = (left: ArrayObject, index: IntegerObject) => {
+	const idx = index.value;
+	const max = left.elements.length - 1;
+	if (idx < 0 || idx > max) {
+		return NULL_OBJ;
+	}
+	return left.elements[idx];
 };

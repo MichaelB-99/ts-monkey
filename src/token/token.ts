@@ -30,6 +30,8 @@ export enum TokenType {
 	RPAREN = ")",
 	LBRACE = "{",
 	RBRACE = "}",
+	LBRACKET = "[",
+	RBRACKET = "]",
 
 	//keywords
 	LET = "LET",

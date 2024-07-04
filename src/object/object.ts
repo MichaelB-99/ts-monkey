@@ -44,6 +44,7 @@ export enum ObjectType {
 	NULL_OBJ = "NULL",
 	ERROR_OBJ = "ERROR",
 	BUILT_IN_OBJ = "BUILTIN",
+	ARRAY_OBJ = "ARRAY",
 }
 
 export class ReturnValueObject implements InternalObject {
@@ -99,6 +100,15 @@ export class BuiltInObject implements InternalObject {
 	}
 	inspect(): string {
 		return "builtin function";
+	}
+}
+export class ArrayObject implements InternalObject {
+	constructor(public elements: Maybe<InternalObject>[]) {}
+	type(): ObjectType {
+		return ObjectType.ARRAY_OBJ;
+	}
+	inspect(): string {
+		return `[${this.elements.map((e) => e?.inspect()).join(", ")}]`;
 	}
 }
 export const TRUE_OBJ = new BooleanObject(true);

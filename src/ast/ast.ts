@@ -1,6 +1,5 @@
 import type { Token } from "../token/token";
 import type { Maybe } from "../utils/types";
-
 export interface Node {
 	tokenLiteral(): string;
 	string(): string;
@@ -197,5 +196,33 @@ export class StringLiteral implements Expression {
 	}
 	string(): string {
 		return this.token.literal;
+	}
+}
+export class ArrayLiteral implements Expression {
+	constructor(
+		public token: Token,
+		public elements: Expression[] | null,
+	) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		const elements = this.elements?.map((v) => v.string()).join(", ");
+		return `[${elements}]`;
+	}
+}
+export class IndexExpression implements Expression {
+	public index: Maybe<Expression> = null;
+	constructor(
+		public token: Token,
+		public left: Expression,
+	) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `(${this.left.string()}[${this.index?.string()}])`;
 	}
 }

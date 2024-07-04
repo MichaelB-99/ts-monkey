@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+	ArrayLiteral,
 	BooleanLiteral,
 	CallExpression,
 	type Expression,
@@ -7,6 +8,7 @@ import {
 	FunctionLiteral,
 	Identifier,
 	IfExpression,
+	IndexExpression,
 	InfixExpression,
 	IntegerLiteral,
 	LetStatement,
@@ -288,6 +290,14 @@ describe("parser", () => {
 				input: "add(a + b + c * d / f + g)",
 				expected: "add((((a + b) + ((c * d) / f)) + g))",
 			},
+			{
+				input: "a * [1, 2, 3, 4][b * c] * d",
+				expected: "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+			},
+			{
+				input: "add(a * b[2], b[1], 2 * [1, 2][1])",
+				expected: "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+			},
 		];
 		for (const { input, expected } of tests) {
 			const parser = new Parser(new Lexer(input));
@@ -461,6 +471,37 @@ describe("parser", () => {
 		expect(statement).toBeInstanceOf(ExpressionStatement);
 		expect(statement.expression).toBeInstanceOf(StringLiteral);
 		expect((statement.expression as StringLiteral).value).toBe("hello world");
+	});
+	it("should parse array literals", () => {
+		const input = "[1,2*2,3+3]";
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		const expr = statement.expression as ArrayLiteral;
+		expect(expr).toBeInstanceOf(ArrayLiteral);
+		expect(expr.elements).toHaveLength(3);
+		testIntegerLiteral(expr.elements![0], 1);
+		testInfixExpression(expr.elements![1] as InfixExpression, 2, "*", 2);
+		testInfixExpression(expr.elements![2] as InfixExpression, 3, "+", 3);
+	});
+	it("should parse index expressions", () => {
+		const input = "myArr[1 + 1]";
+		const parser = new Parser(new Lexer(input));
+		const program = parser.parseProgram();
+		checkParserErrors(parser);
+		const statement = program.statements[0] as ExpressionStatement;
+		expect(statement).toBeInstanceOf(ExpressionStatement);
+		expect(statement.expression).toBeInstanceOf(IndexExpression);
+		const expr = statement.expression as IndexExpression;
+		testIdentifier(expr.left, "myArr");
+		testInfixExpression(
+			(statement.expression as IndexExpression).index as InfixExpression,
+			1,
+			"+",
+			1,
+		);
 	});
 });
 
