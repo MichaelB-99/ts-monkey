@@ -346,6 +346,10 @@ describe("eval", () => {
 				expected: "wrong number of arguments. got=2, want=1",
 			},
 			{ input: "len([1,2])", expected: 2 },
+			{ input: "first([1,2])", expected: 1 },
+			{ input: "last([1,2])", expected: 2 },
+			{ input: `rest(["hello", "world","!"])`, expected: ["world", "!"] },
+			{ input: `push(["hello"],"world")`, expected: ["hello", "world"] },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -359,6 +363,15 @@ describe("eval", () => {
 					expect(evaluated).toBeInstanceOf(ErrorObject);
 					expect((evaluated as ErrorObject).msg).toBe(expected);
 					break;
+
+				case "object": {
+					expect(evaluated).toBeInstanceOf(ArrayObject);
+					const values = (evaluated as ArrayObject).elements.map((a) =>
+						a?.inspect(),
+					);
+					expected.forEach((el) => expect(values).toContain(el));
+					break;
+				}
 				default:
 					break;
 			}
