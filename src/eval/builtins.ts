@@ -2,10 +2,14 @@ import {
 	ArrayObject,
 	BuiltInObject,
 	ErrorObject,
+	type FunctionObject,
 	IntegerObject,
+	type InternalObject,
 	NULL_OBJ,
 	ObjectType,
 } from "../object/object";
+import type { Maybe } from "../utils/types";
+import { applyFunction } from "./eval";
 
 export const builtins: Record<string, BuiltInObject> = {
 	len: new BuiltInObject((...args) => {
@@ -84,5 +88,30 @@ export const builtins: Record<string, BuiltInObject> = {
 		const clone = arg.elements.slice();
 		clone.push(args[1]);
 		return new ArrayObject(clone);
+	}),
+	map: new BuiltInObject((...args) => {
+		if (args.length !== 2) {
+			return new ErrorObject(
+				`wrong number of arguments. got=${args.length}, want=1`,
+			);
+		}
+		const arg = args[0] as Maybe<ArrayObject>;
+		const arg2 = args[1] as Maybe<FunctionObject>;
+
+		if (arg?.type() !== ObjectType.ARRAY_OBJ) {
+			return new ErrorObject(
+				`'map' function only accepts an array, got: ${arg?.type()}`,
+			);
+		}
+		if (arg2?.type() !== ObjectType.FUNCTION_OBJ) {
+			return new ErrorObject(
+				`'map' second parameter must be a function, got: ${arg2?.type()}`,
+			);
+		}
+		const result: Maybe<InternalObject>[] = [];
+		arg.elements.forEach((el, i) => {
+			result.push(applyFunction(arg2, [el, new IntegerObject(i)]));
+		});
+		return new ArrayObject(result);
 	}),
 };

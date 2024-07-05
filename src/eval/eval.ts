@@ -338,7 +338,7 @@ const evalExpressions = (exprs: Expression[], env: Environment) => {
 	return result;
 };
 
-const applyFunction = (
+export const applyFunction = (
 	func: Maybe<InternalObject>,
 	args: Maybe<InternalObject>[],
 ) => {

@@ -8,6 +8,7 @@ import {
 	IntegerObject,
 	NULL_OBJ,
 	type NullObject,
+	ObjectType,
 	StringObject,
 } from "../object/object";
 import { Parser } from "../parser/parser";
@@ -350,6 +351,8 @@ describe("eval", () => {
 			{ input: "last([1,2])", expected: 2 },
 			{ input: `rest(["hello", "world","!"])`, expected: ["world", "!"] },
 			{ input: `push(["hello"],"world")`, expected: ["hello", "world"] },
+			{ input: "map([1,2,3,4],fn(x){x*2})", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4],fn(_,i){i})", expected: [0, 1, 2, 3] },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -367,7 +370,9 @@ describe("eval", () => {
 				case "object": {
 					expect(evaluated).toBeInstanceOf(ArrayObject);
 					const values = (evaluated as ArrayObject).elements.map((a) =>
-						a?.inspect(),
+						a?.type() === ObjectType.INTEGER_OBJ
+							? Number(a?.inspect())
+							: a?.inspect(),
 					);
 					expected.forEach((el) => expect(values).toContain(el));
 					break;
