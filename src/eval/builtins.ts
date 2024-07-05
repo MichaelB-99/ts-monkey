@@ -114,4 +114,38 @@ export const builtins: Record<string, BuiltInObject> = {
 		});
 		return new ArrayObject(result);
 	}),
+	find: new BuiltInObject((...args) => {
+		if (args.length !== 2) {
+			return new ErrorObject(
+				`wrong number of arguments. got=${args.length}, want=1`,
+			);
+		}
+		const arg = args[0] as Maybe<ArrayObject>;
+		const arg2 = args[1] as Maybe<FunctionObject>;
+
+		if (arg?.type() !== ObjectType.ARRAY_OBJ) {
+			return new ErrorObject(
+				`'find' function only accepts an array, got: ${arg?.type()}`,
+			);
+		}
+		if (arg2?.type() !== ObjectType.FUNCTION_OBJ) {
+			return new ErrorObject(
+				`'find' second parameter must be a function, got: ${arg2?.type()}`,
+			);
+		}
+		for (const el of arg.elements) {
+			const res = applyFunction(arg2, [el]);
+
+			if (res?.type() !== ObjectType.BOOLEAN_OBJ) {
+				return new ErrorObject(
+					`callback function to 'find' must evaluate to a boolean value. got: ${res?.type()}`,
+				);
+			}
+
+			if (res?.inspect() === "true") {
+				return el;
+			}
+		}
+		return NULL_OBJ;
+	}),
 };
