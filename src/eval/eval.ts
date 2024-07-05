@@ -395,8 +395,16 @@ const evalIndexExpression = (
 	left: Maybe<InternalObject>,
 	index: Maybe<InternalObject>,
 ) => {
-	if (left instanceof ArrayObject && index?.type() === ObjectType.INTEGER_OBJ) {
+	if (index?.type() !== ObjectType.INTEGER_OBJ) {
+		return new ErrorObject(
+			`index needs to be an integer. got : ${index?.type()}`,
+		);
+	}
+	if (left instanceof ArrayObject) {
 		return evalArrayIndexExpression(left, index as IntegerObject);
+	}
+	if (left instanceof StringObject) {
+		return evalStringIndexExpression(left, index as IntegerObject);
 	}
 	return new ErrorObject(`index operator not supported: ${left?.type()}`);
 };
@@ -407,4 +415,15 @@ const evalArrayIndexExpression = (left: ArrayObject, index: IntegerObject) => {
 		return NULL_OBJ;
 	}
 	return left.elements[idx];
+};
+const evalStringIndexExpression = (
+	left: StringObject,
+	index: IntegerObject,
+) => {
+	const idx = index.value;
+	const max = left.value.length - 1;
+	if (idx < 0 || idx > max) {
+		return NULL_OBJ;
+	}
+	return new StringObject(left.value[idx]);
 };

@@ -442,11 +442,14 @@ describe("eval", () => {
 
 				expected: null,
 			},
+			{ input: `"hello world!"[4]`, expected: "o" },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
 			if (evaluated instanceof IntegerObject) {
-				testIntegerObject(evaluated, expected!);
+				testIntegerObject(evaluated, expected as number);
+			} else if (evaluated instanceof StringObject) {
+				expect(evaluated.value).toBe(expected as string);
 			} else {
 				testNullObject(evaluated as NullObject);
 			}
