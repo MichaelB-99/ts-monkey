@@ -442,6 +442,7 @@ describe("eval", () => {
 
 				expected: null,
 			},
+			{ input: `["hello"][0]`, expected: "hello" },
 			{ input: `"hello world!"[4]`, expected: "o" },
 		];
 		for (const { input, expected } of tests) {
