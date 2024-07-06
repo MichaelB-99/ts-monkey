@@ -353,6 +353,7 @@ describe("eval", () => {
 			{ input: `push(["hello"],"world")`, expected: ["hello", "world"] },
 			{ input: "map([1,2,3,4],fn(x){x*2})", expected: [2, 4, 6, 8] },
 			{ input: "map([1,2,3,4],fn(_,i){i})", expected: [0, 1, 2, 3] },
+			{ input: 'find(["a","ab","abc"],fn(x){len(x)>2})', expected: "abc" },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -363,8 +364,11 @@ describe("eval", () => {
 					break;
 
 				case "string":
+					if (evaluated instanceof StringObject) {
+						return expect(evaluated.value).toBe(expected);
+					}
+
 					expect(evaluated).toBeInstanceOf(ErrorObject);
-					expect((evaluated as ErrorObject).msg).toBe(expected);
 					break;
 
 				case "object": {
