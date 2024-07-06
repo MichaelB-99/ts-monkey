@@ -148,4 +148,31 @@ export const builtins: Record<string, BuiltInObject> = {
 		}
 		return NULL_OBJ;
 	}),
+	reduce: new BuiltInObject((...args) => {
+		if (args.length < 2) {
+			return new ErrorObject(
+				`wrong number of arguments. got=${args.length}, want=2|3`,
+			);
+		}
+		const arg = args[0] as Maybe<ArrayObject>;
+		const arg2 = args[1] as Maybe<FunctionObject>;
+		const arg3 = args[2] as Maybe<InternalObject>;
+
+		if (arg?.type() !== ObjectType.ARRAY_OBJ) {
+			return new ErrorObject(
+				`'reduce' function only accepts an array, got: ${arg?.type()}`,
+			);
+		}
+		if (arg2?.type() !== ObjectType.FUNCTION_OBJ) {
+			return new ErrorObject(
+				`'reduce' second parameter must be a function, got: ${arg2?.type()}`,
+			);
+		}
+		const copy = arg.elements;
+		let result = arg3 ?? copy.shift();
+		for (const el of copy) {
+			result = applyFunction(arg2, [result, el]);
+		}
+		return result;
+	}),
 };
