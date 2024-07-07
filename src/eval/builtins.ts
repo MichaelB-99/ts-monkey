@@ -7,6 +7,7 @@ import {
 	type InternalObject,
 	NULL_OBJ,
 	ObjectType,
+	TRUE_OBJ,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
 import { applyFunction } from "./eval";
@@ -174,5 +175,37 @@ export const builtins: Record<string, BuiltInObject> = {
 			result = applyFunction(arg2, [result, el]);
 		}
 		return result;
+	}),
+	filter: new BuiltInObject((...args) => {
+		if (args.length < 2) {
+			return new ErrorObject(
+				`wrong number of arguments. got=${args.length}, want=2`,
+			);
+		}
+		const arg = args[0] as Maybe<ArrayObject>;
+		const arg2 = args[1] as Maybe<FunctionObject>;
+		if (arg?.type() !== ObjectType.ARRAY_OBJ) {
+			return new ErrorObject(
+				`'filter function only accepts an array. got ${arg?.type()}`,
+			);
+		}
+		if (arg2?.type() !== ObjectType.FUNCTION_OBJ) {
+			return new ErrorObject(
+				`'filter' second parameter must be a function. got ${arg?.type()}`,
+			);
+		}
+		const filtered: Maybe<InternalObject>[] = [];
+		for (const [index, el] of arg.elements.entries()) {
+			const res = applyFunction(arg2, [el, new IntegerObject(index)]);
+			if (res?.type() !== ObjectType.BOOLEAN_OBJ) {
+				return new ErrorObject(
+					`callback must evaluate to a boolean value. got ${res?.type()}`,
+				);
+			}
+			if (res === TRUE_OBJ) {
+				filtered.push(el);
+			}
+		}
+		return new ArrayObject(filtered);
 	}),
 };

@@ -363,6 +363,18 @@ describe("eval", () => {
 					'reduce(["hello ", "world","!"],fn(acc,curr){acc+curr},"Monkey says: ")',
 				expected: "Monkey says: hello world!",
 			},
+			{
+				input: 'filter(["a","ab","abc"],fn(x){len(x)>1})',
+				expected: ["ab", "abc"],
+			},
+			{
+				input: "filter([1,2,3,4],fn(num,i){num + i > 3})",
+				expected: [3, 4],
+			},
+			{
+				input: "filter([true,false,false,true],fn(x){!!x})",
+				expected: [true, true],
+			},
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -386,7 +398,9 @@ describe("eval", () => {
 					const values = (evaluated as ArrayObject).elements.map((a) =>
 						a?.type() === ObjectType.INTEGER_OBJ
 							? Number(a?.inspect())
-							: a?.inspect(),
+							: a?.type() === ObjectType.BOOLEAN_OBJ
+								? a.inspect() === "true"
+								: a?.inspect(),
 					);
 					expected.forEach((el) => expect(values).toContain(el));
 					break;
