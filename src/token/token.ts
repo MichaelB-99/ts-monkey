@@ -26,6 +26,7 @@ export enum TokenType {
 	//delimiters
 	COMMA = ",",
 	SEMICOLON = ";",
+	COLON = ":",
 	LPAREN = "(",
 	RPAREN = ")",
 	LBRACE = "{",

@@ -133,6 +133,10 @@ export class Lexer {
 			case "]":
 				token = this.newToken(TokenType.RBRACKET, this.ch);
 				break;
+
+			case ":":
+				token = this.newToken(TokenType.COLON, ":");
+				break;
 			case 0: {
 				token = this.newToken(TokenType.EOF, "");
 				break;

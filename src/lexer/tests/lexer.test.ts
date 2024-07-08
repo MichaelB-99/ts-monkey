@@ -50,6 +50,8 @@ describe("lexer", () => {
 			5>=5
 			1<=1
 			[1,2]
+			{"foo":"bar"}
+			
 		`;
 
 		const tests: { expectedType: TokenType; expectedLiteral: string }[] = [
@@ -145,6 +147,11 @@ describe("lexer", () => {
 			{ expectedType: TokenType.COMMA, expectedLiteral: "," },
 			{ expectedType: TokenType.INT, expectedLiteral: "2" },
 			{ expectedType: TokenType.RBRACKET, expectedLiteral: "]" },
+			{ expectedType: TokenType.LBRACE, expectedLiteral: "{" },
+			{ expectedType: TokenType.STRING, expectedLiteral: "foo" },
+			{ expectedType: TokenType.COLON, expectedLiteral: ":" },
+			{ expectedType: TokenType.STRING, expectedLiteral: "bar" },
+			{ expectedType: TokenType.RBRACE, expectedLiteral: "}" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);
