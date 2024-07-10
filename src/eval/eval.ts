@@ -6,6 +6,7 @@ import {
 	type Expression,
 	ExpressionStatement,
 	FunctionLiteral,
+	HashLiteral,
 	Identifier,
 	IfExpression,
 	IndexExpression,
@@ -21,11 +22,13 @@ import {
 } from "../ast/ast";
 import {
 	ArrayObject,
-	type BooleanObject,
+	BooleanObject,
 	BuiltInObject,
 	ErrorObject,
 	FALSE_OBJ,
 	FunctionObject,
+	HashObject,
+	type HashPairs,
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
@@ -119,12 +122,16 @@ export function evaluate(
 	if (node instanceof StringLiteral) {
 		return new StringObject(node.value);
 	}
+	if (node instanceof HashLiteral) {
+		return evalHashLiteral(node, env);
+	}
 	if (node instanceof IndexExpression) {
 		const left = evaluate(node.left, env);
 		if (isError(left)) return left;
 		const index = evaluate(node.index, env);
 		return evalIndexExpression(left, index);
 	}
+
 	return null;
 }
 
@@ -395,16 +402,14 @@ const evalIndexExpression = (
 	left: Maybe<InternalObject>,
 	index: Maybe<InternalObject>,
 ) => {
-	if (index?.type() !== ObjectType.INTEGER_OBJ) {
-		return new ErrorObject(
-			`index needs to be an integer. got : ${index?.type()}`,
-		);
-	}
 	if (left instanceof ArrayObject) {
 		return evalArrayIndexExpression(left, index as IntegerObject);
 	}
 	if (left instanceof StringObject) {
 		return evalStringIndexExpression(left, index as IntegerObject);
+	}
+	if (left instanceof HashObject) {
+		return evalHashIndexExpression(left, index);
 	}
 	return new ErrorObject(`index operator not supported: ${left?.type()}`);
 };
@@ -426,4 +431,43 @@ const evalStringIndexExpression = (
 		return NULL_OBJ;
 	}
 	return new StringObject(left.value[idx]);
+};
+export const evalHashLiteral = (node: HashLiteral, env: Environment) => {
+	const pairs: HashPairs = new Map();
+	for (const [key, value] of node.pairs!.entries()) {
+		const evalKey = evaluate(key, env);
+		if (isError(evalKey)) {
+			return evalKey;
+		}
+		if (
+			!(
+				evalKey instanceof StringObject ||
+				evalKey instanceof IntegerObject ||
+				evalKey instanceof BooleanObject
+			)
+		) {
+			return new ErrorObject(`cannot use ${evalKey?.type()} as hash key`);
+		}
+		const evalValue = evaluate(value, env);
+		if (isError(evalValue)) return evalValue;
+		pairs.set(evalKey.value, { key: evalKey, value: evalValue });
+	}
+	return new HashObject(pairs);
+};
+
+const evalHashIndexExpression = (
+	hash: HashObject,
+	index: Maybe<InternalObject>,
+) => {
+	if (
+		!(
+			index instanceof StringObject ||
+			index instanceof IntegerObject ||
+			index instanceof BooleanObject
+		)
+	) {
+		return new ErrorObject(`cannot access hash with type: ${index?.type()}`);
+	}
+	const val = hash.pairs.get(index.value);
+	return val?.value || NULL_OBJ;
 };

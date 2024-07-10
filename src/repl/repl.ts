@@ -29,7 +29,7 @@ export async function repl() {
 			console.log(evaluated.inspect());
 		}
 		if (values.ast) {
-			console.log(program.statements);
+			console.log(program.statements[0]);
 		}
 		prompt();
 	}

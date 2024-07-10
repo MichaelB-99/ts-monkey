@@ -6,6 +6,7 @@ import {
 	type Expression,
 	ExpressionStatement,
 	FunctionLiteral,
+	HashLiteral,
 	Identifier,
 	IfExpression,
 	IndexExpression,
@@ -71,6 +72,7 @@ export class Parser {
 		this.registerPrefix(TokenType.IF, this.parseIfExpression);
 		this.registerPrefix(TokenType.FUNCTION, this.parseFunctionLiteral);
 		this.registerPrefix(TokenType.STRING, this.parseStringLiteral);
+		this.registerPrefix(TokenType.LBRACE, this.parseHashLiteral);
 		this.registerInfix(TokenType.PLUS, this.parseInfixExpression);
 		this.registerInfix(TokenType.MINUS, this.parseInfixExpression);
 		this.registerInfix(TokenType.SLASH, this.parseInfixExpression);
@@ -304,6 +306,28 @@ export class Parser {
 			this.currToken,
 			this.parseExpressionList(TokenType.RBRACKET),
 		);
+	};
+	parseHashLiteral = () => {
+		const hash = new HashLiteral(this.currToken);
+		hash.pairs = new Map();
+		while (!this.peekTokenIs(TokenType.RBRACE)) {
+			this.nextToken();
+			const key = this.parseExpression(Precedences.LOWEST);
+			if (!this.expectPeek(TokenType.COLON)) {
+				return null;
+			}
+			this.nextToken();
+			const value = this.parseExpression(Precedences.LOWEST);
+			hash.pairs.set(key!, value!);
+			if (
+				!this.peekTokenIs(TokenType.RBRACE) &&
+				!this.expectPeek(TokenType.COMMA)
+			) {
+				return null;
+			}
+		}
+		if (!this.expectPeek(TokenType.RBRACE)) return null;
+		return hash;
 	};
 	parseIndexExpression = (left: Expression) => {
 		const indexExpr = new IndexExpression(this.currToken, left);

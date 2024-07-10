@@ -226,3 +226,18 @@ export class IndexExpression implements Expression {
 		return `(${this.left.string()}[${this.index?.string()}])`;
 	}
 }
+
+export class HashLiteral implements Expression {
+	public pairs: Map<Expression, Expression> | null = null;
+
+	constructor(public token: Token) {}
+	expressionNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `{${Array.from(this.pairs!.entries())
+			.map(([key, value]) => `${key.string()}:${value.string()}`)
+			.join(", ")}}`;
+	}
+}

@@ -5,6 +5,8 @@ import {
 	BooleanObject,
 	ErrorObject,
 	FunctionObject,
+	type HashKey,
+	HashObject,
 	IntegerObject,
 	NULL_OBJ,
 	type NullObject,
@@ -482,6 +484,93 @@ describe("eval", () => {
 			} else {
 				testNullObject(evaluated as NullObject);
 			}
+		}
+	});
+	it("should evaluate hash literals", () => {
+		const input = `let two = "two"; 
+		{"one": 10 - 9,
+		two: 1 + 1,
+		"thr" + "ee": 6 / 2,
+		4: 4,
+		true: 5,
+		false: 6
+		}`;
+		const evaluated = testEval(input) as HashObject;
+		expect(evaluated).toBeInstanceOf(HashObject);
+		const expected = new Map<HashKey, number>([
+			["one", 1],
+			["two", 2],
+			["three", 3],
+			[4, 4],
+			[true, 5],
+			[false, 6],
+		]);
+		console.log(evaluated);
+		expect(evaluated.pairs.size).toBe(expected.size);
+		for (const [key, value] of expected.entries()) {
+			const pair = evaluated.pairs.get(key);
+			testIntegerObject(pair!.value as IntegerObject, value);
+		}
+	});
+	it("should evaluate hash index expressions", () => {
+		const tests = [
+			{
+				input: `{"foo": 5}["foo"]`,
+				expected: 5,
+			},
+			{
+				input: `{"foo": 5}["bar"]`,
+				expected: null,
+			},
+			{
+				input: `let key = "foo"; {"foo": 5}[key]`,
+				expected: 5,
+			},
+			{
+				input: `{}["foo"]`,
+				expected: null,
+			},
+			{
+				input: "{5: 5}[5]",
+				expected: 5,
+			},
+			{
+				input: "{true: 5}[true]",
+				expected: 5,
+			},
+			{
+				input: "{false: 5}[false]",
+				expected: 5,
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			if (evaluated instanceof IntegerObject) {
+				testIntegerObject(evaluated, expected!);
+			} else {
+				testNullObject(evaluated as NullObject);
+			}
+		}
+	});
+	it("should handle hash errors", () => {
+		const tests = [
+			{
+				input: `{"foo": 5}[fn(){}]`,
+				expected: "cannot access hash with type: FUNCTION",
+			},
+			{
+				input: `{"foo": 5}[{}]`,
+				expected: "cannot access hash with type: HASH",
+			},
+			{
+				input: `{"foo": 5}[[1,2]]`,
+				expected: "cannot access hash with type: ARRAY",
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input) as ErrorObject;
+			expect(evaluated).toBeInstanceOf(ErrorObject);
+			expect(evaluated.msg).toBe(expected);
 		}
 	});
 });

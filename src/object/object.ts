@@ -45,6 +45,7 @@ export enum ObjectType {
 	ERROR_OBJ = "ERROR",
 	BUILT_IN_OBJ = "BUILTIN",
 	ARRAY_OBJ = "ARRAY",
+	HASH_OBJ = "HASH",
 }
 
 export class ReturnValueObject implements InternalObject {
@@ -89,6 +90,10 @@ export class StringObject implements InternalObject {
 	inspect(): string {
 		return this.value;
 	}
+
+	// hashKey() {
+	// 	return `${this.type()}|${this.value}`;
+	// }
 }
 type BuiltinFunction = (
 	...args: Maybe<InternalObject>[]
@@ -109,6 +114,24 @@ export class ArrayObject implements InternalObject {
 	}
 	inspect(): string {
 		return `[${this.elements.map((e) => e?.inspect()).join(", ")}]`;
+	}
+}
+
+export type HashKey = string | number | boolean;
+type HashPair = {
+	key: StringObject | IntegerObject | BooleanObject;
+	value: Maybe<InternalObject>;
+};
+export type HashPairs = Map<HashKey, HashPair>;
+export class HashObject implements InternalObject {
+	constructor(public pairs: HashPairs) {}
+	type(): ObjectType {
+		return ObjectType.HASH_OBJ;
+	}
+	inspect(): string {
+		return `{${Array.from(this.pairs.values())
+			.map(({ key, value }) => `${key.inspect()}:${value?.inspect()}`)
+			.join(", ")}}`;
 	}
 }
 export const TRUE_OBJ = new BooleanObject(true);
