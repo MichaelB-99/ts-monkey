@@ -402,10 +402,13 @@ const evalIndexExpression = (
 	left: Maybe<InternalObject>,
 	index: Maybe<InternalObject>,
 ) => {
-	if (left instanceof ArrayObject) {
+	if (left instanceof ArrayObject && index?.type() === ObjectType.INTEGER_OBJ) {
 		return evalArrayIndexExpression(left, index as IntegerObject);
 	}
-	if (left instanceof StringObject) {
+	if (
+		left instanceof StringObject &&
+		index?.type() === ObjectType.INTEGER_OBJ
+	) {
 		return evalStringIndexExpression(left, index as IntegerObject);
 	}
 	if (left instanceof HashObject) {
