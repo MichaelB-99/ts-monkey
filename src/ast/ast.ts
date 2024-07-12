@@ -241,3 +241,19 @@ export class HashLiteral implements Expression {
 			.join(", ")}}`;
 	}
 }
+export class ForStatement implements Statement {
+	public currItem: Maybe<Identifier> = null;
+	public currIndex: Maybe<Identifier> = null;
+	public iterable: Maybe<Expression>;
+	public body: Maybe<BlockStatement> = null;
+	constructor(public token: Token) {}
+	statementNode(): void {}
+	tokenLiteral(): string {
+		return this.token.literal;
+	}
+	string(): string {
+		return `${this.tokenLiteral()} (${this.currItem?.string()}, ${this.currIndex?.string()} of ${this.iterable?.string()}){
+		${this.body?.string()}
+		}`;
+	}
+}

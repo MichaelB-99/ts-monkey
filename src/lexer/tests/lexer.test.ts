@@ -51,6 +51,9 @@ describe("lexer", () => {
 			1<=1
 			[1,2]
 			{"foo":"bar"}
+			for(item,index in arr){
+			
+			}
 			
 		`;
 
@@ -151,6 +154,16 @@ describe("lexer", () => {
 			{ expectedType: TokenType.STRING, expectedLiteral: "foo" },
 			{ expectedType: TokenType.COLON, expectedLiteral: ":" },
 			{ expectedType: TokenType.STRING, expectedLiteral: "bar" },
+			{ expectedType: TokenType.RBRACE, expectedLiteral: "}" },
+			{ expectedType: TokenType.FOR, expectedLiteral: "for" },
+			{ expectedType: TokenType.LPAREN, expectedLiteral: "(" },
+			{ expectedType: TokenType.IDENT, expectedLiteral: "item" },
+			{ expectedType: TokenType.COMMA, expectedLiteral: "," },
+			{ expectedType: TokenType.IDENT, expectedLiteral: "index" },
+			{ expectedType: TokenType.IN, expectedLiteral: "in" },
+			{ expectedType: TokenType.IDENT, expectedLiteral: "arr" },
+			{ expectedType: TokenType.RPAREN, expectedLiteral: ")" },
+			{ expectedType: TokenType.LBRACE, expectedLiteral: "{" },
 			{ expectedType: TokenType.RBRACE, expectedLiteral: "}" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];

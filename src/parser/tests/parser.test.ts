@@ -1,10 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import {
 	ArrayLiteral,
+	BlockStatement,
 	BooleanLiteral,
 	CallExpression,
 	type Expression,
 	ExpressionStatement,
+	ForStatement,
 	FunctionLiteral,
 	HashLiteral,
 	Identifier,
@@ -584,6 +586,63 @@ describe("parser", () => {
 			expect(key).toBeInstanceOf(StringLiteral);
 			const fn = tests[key.string()];
 			fn(value);
+		}
+	});
+	it("should parse for statements", () => {
+		const tests = [
+			{
+				input: "for(item,index in nums){}",
+				expectedItem: "item",
+				expectedIndex: "index",
+				iterableName: "nums",
+				iterableType: Identifier,
+			},
+			{
+				input: "for(item in arr){}",
+				expectedItem: "item",
+				expectedIndex: null,
+				iterableName: "arr",
+				iterableType: Identifier,
+			},
+			{
+				input: "for(num,i in [1,2,3,4]){}",
+				expectedItem: "num",
+				expectedIndex: "i",
+				iterableName: null,
+				iterableType: ArrayLiteral,
+			},
+			{
+				input: "for(el,i in createArray()){}",
+				expectedItem: "el",
+				expectedIndex: "i",
+				iterableName: null,
+				iterableType: CallExpression,
+			},
+		];
+		for (const {
+			input,
+			expectedItem,
+			expectedIndex,
+			iterableName,
+			iterableType,
+		} of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ForStatement;
+			expect(statement).toBeInstanceOf(ForStatement);
+			expect(statement.currItem).toBeInstanceOf(Identifier);
+			if (statement.currIndex) {
+				expect(statement.currIndex).toBeInstanceOf(Identifier);
+				testIdentifier(statement.currIndex!, expectedIndex!);
+			}
+			expect(statement.iterable).toBeInstanceOf(iterableType);
+			if (statement.iterable instanceof Identifier) {
+				expect(statement.iterable.value).toBe(iterableName!);
+			}
+			testIdentifier(statement.currItem!, expectedItem);
+			expect(statement.body).toBeInstanceOf(BlockStatement);
 		}
 	});
 });

@@ -5,6 +5,7 @@ import {
 	CallExpression,
 	type Expression,
 	ExpressionStatement,
+	ForStatement,
 	FunctionLiteral,
 	HashLiteral,
 	Identifier,
@@ -85,6 +86,9 @@ export function evaluate(
 			return value;
 		}
 		env.set(node.name!.value, value);
+	}
+	if (node instanceof ForStatement) {
+		return evalForStatement(node, env);
 	}
 	if (node instanceof ReturnStatement) {
 		const value = evaluate(node.value, env);
@@ -473,4 +477,26 @@ const evalHashIndexExpression = (
 	}
 	const val = hash.pairs.get(index.value);
 	return val?.value || NULL_OBJ;
+};
+
+const evalForStatement = (node: ForStatement, env: Environment) => {
+	const iter = evaluate(node.iterable, env);
+	if (isError(iter)) return iter;
+	if (!(iter instanceof ArrayObject)) {
+		return new ErrorObject("iterable does not evaluate to an array!");
+	}
+
+	const newEnv = Environment.newEnclosedEnvironment(env);
+	for (const [i, el] of iter.elements.entries()) {
+		newEnv.set(node.currItem?.value!, el);
+		if (node.currIndex) {
+			newEnv.set(node.currIndex.value, new IntegerObject(i));
+		}
+		const item = evaluate(node.body, newEnv);
+
+		if (item instanceof ReturnValueObject || isError(item)) {
+			return item;
+		}
+	}
+	return NULL_OBJ;
 };

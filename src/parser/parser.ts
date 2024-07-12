@@ -5,6 +5,7 @@ import {
 	CallExpression,
 	type Expression,
 	ExpressionStatement,
+	ForStatement,
 	FunctionLiteral,
 	HashLiteral,
 	Identifier,
@@ -113,7 +114,8 @@ export class Parser {
 				return this.parseLetStatement();
 			case TokenType.RETURN:
 				return this.parseReturnStatement();
-
+			case TokenType.FOR:
+				return this.parseForStatement();
 			default:
 				return this.parseExpressionStatement();
 		}
@@ -150,6 +152,40 @@ export class Parser {
 		if (this.peekTokenIs(TokenType.SEMICOLON)) {
 			this.nextToken();
 		}
+		return statement;
+	}
+	parseForStatement() {
+		const statement = new ForStatement(this.currToken);
+		if (!this.expectPeek(TokenType.LPAREN)) {
+			return null;
+		}
+		this.nextToken();
+		statement.currItem = new Identifier(this.currToken, this.currToken.literal);
+		if (this.peekTokenIs(TokenType.COMMA)) {
+			this.nextToken();
+			this.nextToken();
+			statement.currIndex = new Identifier(
+				this.currToken,
+				this.currToken.literal,
+			);
+		}
+
+		if (!this.expectPeek(TokenType.IN)) {
+			return null;
+		}
+		this.nextToken();
+		statement.iterable = this.parseExpression(Precedences.LOWEST);
+		// fix nested for loops
+		if (!this.expectPeek(TokenType.RPAREN)) {
+			return null;
+		}
+
+		if (!this.expectPeek(TokenType.LBRACE)) {
+			return null;
+		}
+
+		statement.body = this.parseBlockStatement();
+		// console.log(statement.body.statements);
 		return statement;
 	}
 	noPrefixParseFnError = (type: TokenType) => {

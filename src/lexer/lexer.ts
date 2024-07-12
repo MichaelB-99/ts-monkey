@@ -165,7 +165,7 @@ export class Lexer {
 
 	readIdentifier() {
 		const currPos = this.position;
-		while (this.isLetter(this.ch)) {
+		while (this.isLetter(this.ch) || this.isDigit(this.ch)) {
 			this.readChar();
 		}
 		return this.input.slice(currPos, this.position);

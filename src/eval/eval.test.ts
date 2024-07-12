@@ -573,6 +573,29 @@ describe("eval", () => {
 			expect(evaluated.msg).toBe(expected);
 		}
 	});
+	it("should evaluate for statements", () => {
+		const tests = [
+			{
+				input: "for(item,index in [1,2,3,4,5]){if(item == 5){return 5}}",
+				expected: 5,
+			},
+			{
+				input:
+					"let arr=[1,2,3,4];for(item,index in arr){if(item == 1){return item}}",
+				expected: 1,
+			},
+			{
+				input: `let arr=["hello ", "world"];for(item,index in arr){return item + arr[index+1]}`,
+				expected: "hello world",
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input);
+			expect(
+				(evaluated as IntegerObject | BooleanObject | StringObject).value,
+			).toBe(expected);
+		}
+	});
 });
 
 function testEval(input: string) {

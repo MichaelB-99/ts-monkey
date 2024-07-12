@@ -42,6 +42,8 @@ export enum TokenType {
 	IF = "IF",
 	ELSE = "ELSE",
 	RETURN = "RETURN",
+	FOR = "FOR",
+	IN = "IN",
 }
 const keywordMap: Record<string, TokenType> = {
 	fn: TokenType.FUNCTION,
@@ -51,6 +53,8 @@ const keywordMap: Record<string, TokenType> = {
 	true: TokenType.TRUE,
 	false: TokenType.FALSE,
 	return: TokenType.RETURN,
+	for: TokenType.FOR,
+	in: TokenType.IN,
 };
 
 export function lookupIdentifier(identifer: string) {
