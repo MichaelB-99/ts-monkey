@@ -301,6 +301,19 @@ describe("parser", () => {
 				input: "add(a * b[2], b[1], 2 * [1, 2][1])",
 				expected: "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
 			},
+			{
+				input: "true != false && false!=true",
+				expected: "((true != false) && (false != true))",
+			},
+			{ input: "a || b && c", expected: "(a || (b && c))" },
+			{
+				input: "false == true || true == true",
+				expected: "((false == true) || (true == true))",
+			},
+			{
+				input: "false && true || 5>2 && 3>1",
+				expected: "((false && true) || ((5 > 2) && (3 > 1)))",
+			},
 		];
 		for (const { input, expected } of tests) {
 			const parser = new Parser(new Lexer(input));

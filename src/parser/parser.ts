@@ -29,14 +29,15 @@ type ParseFnsMap<T extends PrefixParseFn | InfixParseFn> = Partial<
 >;
 enum Precedences {
 	LOWEST = 0,
-	EQUALS = 1,
-	LOGICAL = 2,
-	LESSGREATER = 3,
-	SUM = 3,
-	PRODUCT = 4,
-	PREFIX = 5,
-	CALL = 6,
-	INDEX = 7,
+	LOGICAL_OR = 1,
+	LOGICAL_AND = 2,
+	EQUALS = 3,
+	LESSGREATER = 4,
+	SUM = 5,
+	PRODUCT = 6,
+	PREFIX = 7,
+	CALL = 8,
+	INDEX = 9,
 }
 export class Parser {
 	public currToken!: Token;
@@ -56,8 +57,8 @@ export class Parser {
 		"*": Precedences.PRODUCT,
 		"/": Precedences.PRODUCT,
 		"(": Precedences.CALL,
-		"||": Precedences.LOGICAL,
-		"&&": Precedences.LOGICAL,
+		"||": Precedences.LOGICAL_OR,
+		"&&": Precedences.LOGICAL_AND,
 		"[": Precedences.INDEX,
 	};
 
