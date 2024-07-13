@@ -596,6 +596,22 @@ describe("eval", () => {
 			).toBe(expected);
 		}
 	});
+	it("should handle for statement errors", () => {
+		const tests = [
+			{
+				input: "for(item,index in 1){}",
+				expected: "iterable does not evaluate to an array!",
+			},
+			{
+				input: "for(item,index in [1,2,3,4]){return nonExistentVar}",
+				expected: "identifier not found: nonExistentVar",
+			},
+		];
+		for (const { input, expected } of tests) {
+			const evaluated = testEval(input) as ErrorObject;
+			expect(evaluated.msg).toBe(expected);
+		}
+	});
 });
 
 function testEval(input: string) {
