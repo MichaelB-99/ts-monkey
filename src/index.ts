@@ -23,14 +23,11 @@ async function runFiles() {
 	for await (const file of glob.scan()) {
 		Bun.file(file)
 			.text()
-			.then((res) =>
-				console.log(
-					file,
-					evaluate(
-						new Parser(new Lexer(res)).parseProgram(),
-						new Environment(),
-					)?.inspect(),
-				),
-			);
+			.then((res) => {
+				const program = new Parser(new Lexer(res)).parseProgram();
+				const ast = Bun.argv.includes("--ast");
+				console.log(file, evaluate(program, new Environment())?.inspect());
+				if (ast) console.log(ast);
+			});
 	}
 }
