@@ -281,12 +281,12 @@ const evalIntegerInfixExpression = (
 const evalIfExpression = (ifExpr: IfExpression, env: Environment) => {
 	const condition = evaluate(ifExpr.condition, env);
 	if (isError(condition)) return condition;
-
+	const newEnv = Environment.newEnclosedEnvironment(env);
 	if (isTruthy(condition)) {
-		return evaluate(ifExpr.consequence, env);
+		return evaluate(ifExpr.consequence, newEnv);
 	}
 	if (ifExpr.alternative) {
-		return evaluate(ifExpr.alternative, env);
+		return evaluate(ifExpr.alternative, newEnv);
 	}
 	return NULL_OBJ;
 };

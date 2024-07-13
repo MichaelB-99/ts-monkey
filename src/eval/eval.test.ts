@@ -82,24 +82,43 @@ describe("eval", () => {
 			testBooleanObject(evaluated as BooleanObject, expected);
 		}
 	});
-	it("should evaluate if else expressions", () => {
-		const tests = [
-			{ input: "if(true){10}", expected: 10 },
-			{ input: "if (false) { 10 }", expected: null },
-			{ input: "if (1) { 10 }", expected: 10 },
-			{ input: "if (1 < 2) { 10 }", expected: 10 },
-			{ input: "if (1 > 2) { 10 }", expected: null },
-			{ input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
-			{ input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
-		];
-		for (const { input, expected } of tests) {
-			const evaluated = testEval(input);
-			if (typeof expected === "number") {
-				testIntegerObject(evaluated as IntegerObject, expected);
-			} else {
-				testNullObject(evaluated as NullObject);
+	describe("if expressions", () => {
+		it("should evaluate", () => {
+			const tests = [
+				{ input: "if(true){10}", expected: 10 },
+				{ input: "if (false) { 10 }", expected: null },
+				{ input: "if (1) { 10 }", expected: 10 },
+				{ input: "if (1 < 2) { 10 }", expected: 10 },
+				{ input: "if (1 > 2) { 10 }", expected: null },
+				{ input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
+				{ input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
+			];
+			for (const { input, expected } of tests) {
+				const evaluated = testEval(input);
+				if (typeof expected === "number") {
+					testIntegerObject(evaluated as IntegerObject, expected);
+				} else {
+					testNullObject(evaluated as NullObject);
+				}
 			}
-		}
+		});
+		it("should be block scoped ", () => {
+			const tests = [
+				{
+					input: "if(true){let num=1};num",
+					expected: "identifier not found: num",
+				},
+				{
+					input: "if(false){}else{let num=1};num",
+					expected: "identifier not found: num",
+				},
+			];
+			for (const { input, expected } of tests) {
+				const evaluated = testEval(input) as ErrorObject;
+				expect(evaluated).toBeInstanceOf(ErrorObject);
+				expect(evaluated.msg).toBe(expected);
+			}
+		});
 	});
 	it("should evaluate return statements", () => {
 		const tests = [
