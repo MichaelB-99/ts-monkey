@@ -25,9 +25,9 @@ async function runFiles() {
 			.text()
 			.then((res) => {
 				const program = new Parser(new Lexer(res)).parseProgram();
-				const ast = Bun.argv.includes("--ast");
+				const printAST = Bun.argv.includes("--ast");
 				console.log(file, evaluate(program, new Environment())?.inspect());
-				if (ast) console.log(ast);
+				if (printAST) console.log(program);
 			});
 	}
 }
