@@ -607,6 +607,11 @@ describe("eval", () => {
 				input: `let arr=["hello ", "world"];for(item,index in arr){return item + arr[index+1]}`,
 				expected: "hello world",
 			},
+			{
+				input:
+					"for(item,index in [1,2,3,4]){if(item == 3 && index ==2){return item}}",
+				expected: 3,
+			},
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
