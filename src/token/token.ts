@@ -22,6 +22,7 @@ export enum TokenType {
 	NOT_EQ = "!=",
 	OR = "||",
 	AND = "&&",
+	ARROW = "=>",
 
 	//delimiters
 	COMMA = ",",

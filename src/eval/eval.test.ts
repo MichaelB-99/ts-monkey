@@ -209,29 +209,52 @@ describe("eval", () => {
 		}
 	});
 	it("should evaluate functions", () => {
-		const input = "fn(x){x+2}";
-		const evaluated = testEval(input) as FunctionObject;
-		const params = evaluated.params;
-		expect(evaluated).toBeInstanceOf(FunctionObject);
-		expect(params).toHaveLength(1);
-		expect(params[0].string()).toBe("x");
-		const expectedBody = "(x + 2)";
-		expect(evaluated.body.string()).toBe(expectedBody);
+		const tests = [
+			{ input: "fn(x){x+2}", expectedBody: "(x + 2)", expectedParams: ["x"] },
+			{
+				input: "fn (x,y) => x+y ",
+				expectedBody: "(x + y)",
+				expectedParams: ["x", "y"],
+			},
+			{ input: "fn (x) => x", expectedBody: "x", expectedParams: ["x"] },
+		];
+		for (const { input, expectedParams, expectedBody } of tests) {
+			const evaluated = testEval(input) as FunctionObject;
+			const params = evaluated.params;
+			expect(evaluated).toBeInstanceOf(FunctionObject);
+			expect(params).toHaveLength(expectedParams.length);
+			params.forEach((param, i) =>
+				expect(param.string()).toBe(expectedParams[i]),
+			);
+			expect(evaluated.body.string()).toBe(expectedBody);
+		}
 	});
 	it("should evaluate called functions", () => {
 		const tests = [
 			{ input: "let identity = fn(x) { x; }; identity(5);", expected: 5 },
+			{ input: "let identity = fn (x) => x; identity(5);", expected: 5 },
 			{
 				input: "let identity = fn(x) { return x; }; identity(5);",
 				expected: 5,
 			},
+			{
+				input: "let identity = fn(x)=>{return x}; identity(5);",
+				expected: 5,
+			},
 			{ input: "let double = fn(x) { x * 2; }; double(5);", expected: 10 },
+			{ input: "let double = fn (x) => x * 2; double(5);", expected: 10 },
 			{ input: "let add = fn(x, y) { x + y; }; add(5, 5);", expected: 10 },
+			{ input: "let add = fn (x,y)=> x+y; add(5, 5);", expected: 10 },
 			{
 				input: "let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));",
 				expected: 20,
 			},
+			{
+				input: "let add = fn(x,y) => x+y; add(5 + 5, add(5, 5));",
+				expected: 20,
+			},
 			{ input: "fn(x) { x; }(5)", expected: 5 },
+			{ input: "fn(x) => x;(5)", expected: 5 },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -248,7 +271,12 @@ describe("eval", () => {
 		let addFive = makeAdder(5)
 		addFive(10) 
 		`;
+		const input2 = `
+		let makeAdder = fn (x)=> fn(y)=> x+y;
+		makeAdder(5)(10)
+		`;
 		testIntegerObject(testEval(input) as IntegerObject, 15);
+		testIntegerObject(testEval(input2) as IntegerObject, 15);
 	});
 	it("should evaluate string literals", () => {
 		const input = `"hello world"`;
@@ -374,9 +402,16 @@ describe("eval", () => {
 			{ input: `push(["hello"],"world")`, expected: ["hello", "world"] },
 			{ input: "map([1,2,3,4],fn(x){x*2})", expected: [2, 4, 6, 8] },
 			{ input: "map([1,2,3,4],fn(_,i){i})", expected: [0, 1, 2, 3] },
+			{ input: "map([1,2,3,4],fn(x)=> x*2)", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4],fn(_,i)=> i)", expected: [0, 1, 2, 3] },
 			{ input: 'find(["a","ab","abc"],fn(x){len(x)>2})', expected: "abc" },
+			{ input: 'find(["a","ab","abc"],fn(x)=>len(x)>2)', expected: "abc" },
 			{
 				input: 'reduce(["hello ", "world"],fn(acc,curr){acc+curr})',
+				expected: "hello world",
+			},
+			{
+				input: 'reduce(["hello ", "world"],fn(acc,curr)=>acc+curr)',
 				expected: "hello world",
 			},
 			{
@@ -385,7 +420,16 @@ describe("eval", () => {
 				expected: "Monkey says: hello world!",
 			},
 			{
+				input:
+					'reduce(["hello ", "world","!"],fn(acc,curr)=>acc+curr,"Monkey says: ")',
+				expected: "Monkey says: hello world!",
+			},
+			{
 				input: 'filter(["a","ab","abc"],fn(x){len(x)>1})',
+				expected: ["ab", "abc"],
+			},
+			{
+				input: 'filter(["a","ab","abc"],fn(x)=> len(x)>1)',
 				expected: ["ab", "abc"],
 			},
 			{
@@ -393,7 +437,15 @@ describe("eval", () => {
 				expected: [3, 4],
 			},
 			{
+				input: "filter([1,2,3,4],fn(num,i)=> num + i > 3)",
+				expected: [3, 4],
+			},
+			{
 				input: "filter([true,false,false,true],fn(x){!!x})",
+				expected: [true, true],
+			},
+			{
+				input: "filter([true,false,false,true],fn(x)=>!!x)",
 				expected: [true, true],
 			},
 		];

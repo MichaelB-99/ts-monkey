@@ -1,4 +1,4 @@
-import type { BlockStatement, Identifier } from "../ast/ast";
+import { BlockStatement, type Expression, type Identifier } from "../ast/ast";
 import type { Environment } from "../eval/environment";
 import type { Maybe } from "../utils/types";
 
@@ -70,14 +70,20 @@ export class ErrorObject implements InternalObject {
 export class FunctionObject implements InternalObject {
 	constructor(
 		public params: Identifier[],
-		public body: BlockStatement,
+		public body: Expression | BlockStatement,
+		public isArrow: boolean,
 		public env: Environment,
 	) {}
 	type(): ObjectType {
 		return ObjectType.FUNCTION_OBJ;
 	}
 	inspect(): string {
-		return `fn(${this.params.join(",")}){
+		if (this.isArrow) {
+			return this.params && this.params.length > 1
+				? `fn(${this.params.map((x) => x.string())?.join(", ")}) => ${this.body instanceof BlockStatement ? `{${this.body.string()}}` : this.body?.string()} `
+				: `fn(${this.params?.at(0)?.string() || ""}) => ${this.body instanceof BlockStatement ? `{${this.body.string()}}` : this.body?.string()} `;
+		}
+		return `fn(${this.params.map((x) => x.string()).join(",")}){
 			${this.body.string()}
 		}`;
 	}

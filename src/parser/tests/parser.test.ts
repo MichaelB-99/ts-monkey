@@ -408,8 +408,10 @@ describe("parser", () => {
 		expect(expr.parameters).toHaveLength(2);
 		testLiteralExpression(expr.parameters![0], "x");
 		testLiteralExpression(expr.parameters![1], "y");
-		expect(expr.body?.statements).toHaveLength(1);
-		const bodyStatement = expr.body?.statements[0] as ExpressionStatement;
+		const body = expr.body as BlockStatement;
+		expect(body).toBeInstanceOf(BlockStatement);
+		expect(body.statements).toHaveLength(1);
+		const bodyStatement = body.statements[0] as ExpressionStatement;
 		expect(bodyStatement).toBeInstanceOf(ExpressionStatement);
 		testInfixExpression(
 			bodyStatement.expression as InfixExpression,
@@ -423,6 +425,10 @@ describe("parser", () => {
 			{ input: "fn(){}", expected: [] },
 			{ input: "fn(x){}", expected: ["x"] },
 			{ input: "fn(x,y,z){}", expected: ["x", "y", "z"] },
+			{ input: "fn ()=> {}", expected: [] },
+			{ input: "fn (x)=> x", expected: ["x"] },
+			{ input: "fn (x,y)=> x", expected: ["x", "y"] },
+			{ input: "fn (x,y,z)=> {}", expected: ["x", "y", "z"] },
 		];
 		for (const { input, expected } of tests) {
 			const parser = new Parser(new Lexer(input));
@@ -437,6 +443,40 @@ describe("parser", () => {
 			expected.forEach((param, i) => {
 				testLiteralExpression(expr.parameters![i], param);
 			});
+		}
+	});
+	it("should parse arrow functions", () => {
+		const tests = [
+			{
+				input: "fn (x,y) => x+y",
+				expectedBodyType: InfixExpression,
+			},
+			{
+				input: "fn () => 1",
+				expectedBodyType: IntegerLiteral,
+			},
+			{ input: "fn (x,y)=> {x+y}", expectedBodyType: BlockStatement },
+		];
+		for (const { input, expectedBodyType } of tests) {
+			const parser = new Parser(new Lexer(input));
+			const program = parser.parseProgram();
+			checkParserErrors(parser);
+
+			expect(program.statements).toHaveLength(1);
+			const statement = program.statements[0] as ExpressionStatement;
+			expect(statement).toBeInstanceOf(ExpressionStatement);
+			const expr = statement.expression as FunctionLiteral;
+			expect(expr).toBeInstanceOf(FunctionLiteral);
+			expect(expr.body).toBeInstanceOf(expectedBodyType);
+			if (expr.body instanceof InfixExpression) {
+				testInfixExpression(expr.body, "x", "+", "y");
+			}
+			if (expr.body instanceof BlockStatement) {
+				const statement = expr.body.statements[0] as ExpressionStatement;
+				expect(statement).toBeInstanceOf(ExpressionStatement);
+				const expression = statement.expression;
+				expect(expression).toBeInstanceOf(InfixExpression);
+			}
 		}
 	});
 	it("should parse call expressions", () => {

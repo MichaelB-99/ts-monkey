@@ -176,7 +176,6 @@ export class Parser {
 		}
 		this.nextToken();
 		statement.iterable = this.parseExpression(Precedences.LOWEST);
-		// fix nested for loops
 		if (!this.expectPeek(TokenType.RPAREN)) {
 			return null;
 		}
@@ -186,7 +185,6 @@ export class Parser {
 		}
 
 		statement.body = this.parseBlockStatement();
-		// console.log(statement.body.statements);
 		return statement;
 	}
 	noPrefixParseFnError = (type: TokenType) => {
@@ -268,16 +266,31 @@ export class Parser {
 		}
 		return expression;
 	};
+
 	parseFunctionLiteral = () => {
 		const expression = new FunctionLiteral(this.currToken);
 		if (!this.expectPeek(TokenType.LPAREN)) return null;
 
 		expression.parameters = this.parseFnParameters();
-
+		if (this.peekTokenIs(TokenType.ARROW)) {
+			expression.isArrow = true;
+			this.nextToken();
+			return this.parseArrowFunctionLiteral(expression);
+		}
 		if (!this.expectPeek(TokenType.LBRACE)) return null;
+
 		expression.body = this.parseBlockStatement();
 
 		return expression;
+	};
+	parseArrowFunctionLiteral = (expr: FunctionLiteral) => {
+		this.nextToken();
+		if (this.currTokenIs(TokenType.LBRACE)) {
+			expr.body = this.parseBlockStatement();
+		} else {
+			expr.body = this.parseExpression(Precedences.LOWEST);
+		}
+		return expr;
 	};
 	parseFnParameters() {
 		const parameters: Identifier[] = [];

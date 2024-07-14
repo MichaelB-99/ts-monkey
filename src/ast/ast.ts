@@ -161,13 +161,19 @@ export class BlockStatement implements Statement {
 }
 export class FunctionLiteral implements Expression {
 	public parameters: Maybe<Identifier[]> = null;
-	public body: BlockStatement | null = null;
+	public body: Maybe<Expression | BlockStatement> = null;
+	public isArrow = false;
 	constructor(public token: Token) {}
 	expressionNode(): void {}
 	tokenLiteral(): string {
 		return this.token.literal;
 	}
 	string(): string {
+		if (this.isArrow) {
+			return this.parameters && this.parameters.length > 1
+				? `(${this.parameters.map((x) => x.string())?.join(", ")}) => ${this.body instanceof BlockStatement ? `{${this.body.string()}}` : this.body?.string()} `
+				: `(${this.parameters?.at(0)?.string() || ""}) => ${this.body instanceof BlockStatement ? `{${this.body.string()}}` : this.body?.string()} `;
+		}
 		return `${this.tokenLiteral()}(${this.parameters?.map((p) => p.string()).join(",")}){${this.body?.string()}}`;
 	}
 }

@@ -54,6 +54,7 @@ describe("lexer", () => {
 			for(item,index in arr){
 			
 			}
+			fn (x) => x * 2
 			
 		`;
 
@@ -165,6 +166,14 @@ describe("lexer", () => {
 			{ expectedType: TokenType.RPAREN, expectedLiteral: ")" },
 			{ expectedType: TokenType.LBRACE, expectedLiteral: "{" },
 			{ expectedType: TokenType.RBRACE, expectedLiteral: "}" },
+			{ expectedType: TokenType.FUNCTION, expectedLiteral: "fn" },
+			{ expectedType: TokenType.LPAREN, expectedLiteral: "(" },
+			{ expectedType: TokenType.IDENT, expectedLiteral: "x" },
+			{ expectedType: TokenType.RPAREN, expectedLiteral: ")" },
+			{ expectedType: TokenType.ARROW, expectedLiteral: "=>" },
+			{ expectedType: TokenType.IDENT, expectedLiteral: "x" },
+			{ expectedType: TokenType.ASTERISK, expectedLiteral: "*" },
+			{ expectedType: TokenType.INT, expectedLiteral: "2" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);

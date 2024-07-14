@@ -103,7 +103,7 @@ export function evaluate(
 	}
 	if (node instanceof FunctionLiteral) {
 		if (node.parameters && node.body) {
-			return new FunctionObject(node.parameters, node.body, env);
+			return new FunctionObject(node.parameters, node.body, node.isArrow, env);
 		}
 		return new ErrorObject("malformed function");
 	}

@@ -34,6 +34,10 @@ export class Lexer {
 					const currChar = this.ch;
 					this.readChar();
 					token = this.newToken(TokenType.EQ, currChar + this.ch);
+				} else if (this.peekChar() === ">") {
+					const currChar = this.ch;
+					this.readChar();
+					token = this.newToken(TokenType.ARROW, currChar + this.ch);
 				} else {
 					token = this.newToken(TokenType.ASSIGN, this.ch);
 				}
