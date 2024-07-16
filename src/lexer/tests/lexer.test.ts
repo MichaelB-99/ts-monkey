@@ -23,7 +23,7 @@ describe("lexer", () => {
 			expect(token.literal).toBe(test.expectedLiteral);
 		}
 	});
-	it("lexes some identifiers and integers", () => {
+	it("lexes some identifiers and integers while ignoring comments", () => {
 		const input = `
 		let five = 5;
 		let ten = 10;
@@ -32,7 +32,7 @@ describe("lexer", () => {
 			x+y;
 		};
 		let result = add(five,ten);
-		!-/*5;
+		!-*/5;
 		5 < 10 > 5;
 
 		if (5 < 10) {
@@ -55,6 +55,23 @@ describe("lexer", () => {
 			
 			}
 			fn (x) => x * 2
+
+			/*
+			first multiline comment
+			*/
+
+			/*
+			consecutive multiline comments  
+			*/
+
+			// single line comment
+			// another single comment
+
+			/*
+			using multiline comment character * using multiline comment character /
+			*/
+
+			1
 			
 		`;
 
@@ -97,8 +114,8 @@ describe("lexer", () => {
 			{ expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
 			{ expectedType: TokenType.BANG, expectedLiteral: "!" },
 			{ expectedType: TokenType.MINUS, expectedLiteral: "-" },
-			{ expectedType: TokenType.SLASH, expectedLiteral: "/" },
 			{ expectedType: TokenType.ASTERISK, expectedLiteral: "*" },
+			{ expectedType: TokenType.SLASH, expectedLiteral: "/" },
 			{ expectedType: TokenType.INT, expectedLiteral: "5" },
 			{ expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
 			{ expectedType: TokenType.INT, expectedLiteral: "5" },
@@ -174,6 +191,7 @@ describe("lexer", () => {
 			{ expectedType: TokenType.IDENT, expectedLiteral: "x" },
 			{ expectedType: TokenType.ASTERISK, expectedLiteral: "*" },
 			{ expectedType: TokenType.INT, expectedLiteral: "2" },
+			{ expectedType: TokenType.INT, expectedLiteral: "1" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);

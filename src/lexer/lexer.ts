@@ -28,6 +28,12 @@ export class Lexer {
 	nextToken(): Token {
 		let token: Token;
 		this.skipWhitespace();
+		if (this.isComment) {
+			this.skipComment();
+			// return and call next token again in case there are multiple consecutive comments.
+			// otherwise we'd only skip the first comment and end up lexing comment characters thinking they are part of monkey code
+			return this.nextToken();
+		}
 		switch (this.ch) {
 			case "=":
 				if (this.peekChar() === "=") {
@@ -215,5 +221,37 @@ export class Lexer {
 			this.readChar();
 		}
 		return this.input.slice(position, this.position);
+	}
+	skipComment() {
+		if (this.ch === "/" && this.peekChar() === "*") {
+			this.skipMultilineComment();
+		} else {
+			this.skipSingleLineComment();
+		}
+	}
+	skipSingleLineComment() {
+		while (this.ch !== "\n") {
+			this.readChar();
+		}
+	}
+
+	skipMultilineComment() {
+		let found = false;
+		while (!found) {
+			if (this.ch === "*" && this.peekChar() === "/") {
+				found = true;
+				break;
+			}
+			this.readChar();
+		}
+		// skip past the end of comment characters (*/) so we don't end up lexing them
+		this.readChar();
+		this.readChar();
+	}
+	get isComment() {
+		return (
+			(this.ch === "/" && this.peekChar() === "/") ||
+			(this.ch === "/" && this.peekChar() === "*")
+		);
 	}
 }
