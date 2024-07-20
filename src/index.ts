@@ -24,7 +24,12 @@ async function runFiles() {
 		Bun.file(file)
 			.text()
 			.then((res) => {
-				const program = new Parser(new Lexer(res)).parseProgram();
+				const parser = new Parser(new Lexer(res));
+				const program = parser.parseProgram();
+				if (parser.errors.length) {
+					parser.errors.forEach((e) => console.log(e));
+					return;
+				}
 				const printAST = Bun.argv.includes("--ast");
 				console.log(file, evaluate(program, new Environment())?.inspect());
 				if (printAST) console.log(program);
