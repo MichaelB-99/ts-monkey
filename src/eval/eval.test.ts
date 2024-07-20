@@ -233,6 +233,7 @@ describe("eval", () => {
 		const tests = [
 			{ input: "let identity = fn(x) { x; }; identity(5);", expected: 5 },
 			{ input: "let identity = fn (x) => x; identity(5);", expected: 5 },
+			{ input: "let identity = fn x => x; identity(5);", expected: 5 },
 			{
 				input: "let identity = fn(x) { return x; }; identity(5);",
 				expected: 5,
@@ -241,8 +242,13 @@ describe("eval", () => {
 				input: "let identity = fn(x)=>{return x}; identity(5);",
 				expected: 5,
 			},
+			{
+				input: "let identity = fn x => {return x}; identity(5);",
+				expected: 5,
+			},
 			{ input: "let double = fn(x) { x * 2; }; double(5);", expected: 10 },
 			{ input: "let double = fn (x) => x * 2; double(5);", expected: 10 },
+			{ input: "let double = fn x => x * 2; double(5);", expected: 10 },
 			{ input: "let add = fn(x, y) { x + y; }; add(5, 5);", expected: 10 },
 			{ input: "let add = fn (x,y)=> x+y; add(5, 5);", expected: 10 },
 			{
@@ -255,6 +261,7 @@ describe("eval", () => {
 			},
 			{ input: "fn(x) { x; }(5)", expected: 5 },
 			{ input: "fn(x) => x;(5)", expected: 5 },
+			{ input: "fn x => x;(5)", expected: 5 },
 		];
 		for (const { input, expected } of tests) {
 			const evaluated = testEval(input);
@@ -272,11 +279,16 @@ describe("eval", () => {
 		addFive(10) 
 		`;
 		const input2 = `
-		let makeAdder = fn (x)=> fn(y)=> x+y;
+		let makeAdder = fn (x) => fn(y) => x+y;
 		makeAdder(5)(10)
 		`;
-		testIntegerObject(testEval(input) as IntegerObject, 15);
-		testIntegerObject(testEval(input2) as IntegerObject, 15);
+		const input3 = `
+		let makeAdder = fn x => fn y => x+y
+		makeAdder(5)(10)
+		`;
+		[input, input2, input3].forEach((input) => {
+			testIntegerObject(testEval(input) as IntegerObject, 15);
+		});
 	});
 	it("should evaluate string literals", () => {
 		const input = `"hello world"`;
@@ -403,9 +415,11 @@ describe("eval", () => {
 			{ input: "map([1,2,3,4],fn(x){x*2})", expected: [2, 4, 6, 8] },
 			{ input: "map([1,2,3,4],fn(_,i){i})", expected: [0, 1, 2, 3] },
 			{ input: "map([1,2,3,4],fn(x)=> x*2)", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4],fn x => x*2)", expected: [2, 4, 6, 8] },
 			{ input: "map([1,2,3,4],fn(_,i)=> i)", expected: [0, 1, 2, 3] },
 			{ input: 'find(["a","ab","abc"],fn(x){len(x)>2})', expected: "abc" },
 			{ input: 'find(["a","ab","abc"],fn(x)=>len(x)>2)', expected: "abc" },
+			{ input: 'find(["a","ab","abc"],fn x => len(x)>2)', expected: "abc" },
 			{
 				input: 'reduce(["hello ", "world"],fn(acc,curr){acc+curr})',
 				expected: "hello world",
@@ -430,6 +444,10 @@ describe("eval", () => {
 			},
 			{
 				input: 'filter(["a","ab","abc"],fn(x)=> len(x)>1)',
+				expected: ["ab", "abc"],
+			},
+			{
+				input: 'filter(["a","ab","abc"],fn x=> len(x)>1)',
 				expected: ["ab", "abc"],
 			},
 			{

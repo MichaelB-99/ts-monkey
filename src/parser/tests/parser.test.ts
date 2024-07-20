@@ -427,6 +427,7 @@ describe("parser", () => {
 			{ input: "fn(x,y,z){}", expected: ["x", "y", "z"] },
 			{ input: "fn ()=> {}", expected: [] },
 			{ input: "fn (x)=> x", expected: ["x"] },
+			{ input: "fn x => x", expected: ["x"] },
 			{ input: "fn (x,y)=> x", expected: ["x", "y"] },
 			{ input: "fn (x,y,z)=> {}", expected: ["x", "y", "z"] },
 		];
@@ -456,6 +457,10 @@ describe("parser", () => {
 				expectedBodyType: IntegerLiteral,
 			},
 			{ input: "fn (x,y)=> {x+y}", expectedBodyType: BlockStatement },
+			{
+				input: "fn x => x",
+				expectedBodyType: Identifier,
+			},
 		];
 		for (const { input, expectedBodyType } of tests) {
 			const parser = new Parser(new Lexer(input));
@@ -477,6 +482,16 @@ describe("parser", () => {
 				const expression = statement.expression;
 				expect(expression).toBeInstanceOf(InfixExpression);
 			}
+		}
+	});
+	it("should handle errors when trying to parse a function as a concise arrow function", () => {
+		const tests = [{ input: "fn x {x}" }, { input: "fn x,y => x+y" }];
+		for (const { input } of tests) {
+			const parser = new Parser(new Lexer(input));
+			parser.parseProgram();
+			expect(parser.errors[0]).toBe(
+				"a functions parentheses may only be left out if the function is an arrow function and if there is only one parameter.",
+			);
 		}
 	});
 	it("should parse call expressions", () => {

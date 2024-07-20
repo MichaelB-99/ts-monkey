@@ -269,6 +269,10 @@ export class Parser {
 
 	parseFunctionLiteral = () => {
 		const expression = new FunctionLiteral(this.currToken);
+		// if parens are left off the function we try to parse it as a concise arrow fn
+		if (this.peekTokenIs(TokenType.IDENT)) {
+			return this.tryParseConciseArrowFn(expression);
+		}
 		if (!this.expectPeek(TokenType.LPAREN)) return null;
 
 		expression.parameters = this.parseFnParameters();
@@ -292,6 +296,21 @@ export class Parser {
 		}
 		return expr;
 	};
+	tryParseConciseArrowFn(expr: FunctionLiteral) {
+		this.nextToken();
+		// either the function is a normal function or there are multiple parameters, both of which can't be parsed as a concise arrow fn
+		if (!this.peekTokenIs(TokenType.ARROW)) {
+			this.errors.push(
+				"a functions parentheses may only be left out if the function is an arrow function and if there is only one parameter.",
+			);
+			return null;
+		}
+		expr.isArrow = true;
+		expr.parameters = [new Identifier(this.currToken, this.currToken.literal)];
+		this.nextToken();
+
+		return this.parseArrowFunctionLiteral(expr);
+	}
 	parseFnParameters() {
 		const parameters: Identifier[] = [];
 		if (this.peekTokenIs(TokenType.RPAREN)) {
