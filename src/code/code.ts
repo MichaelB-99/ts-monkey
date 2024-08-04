@@ -1,4 +1,4 @@
-export type Instructions = number[];
+export type Instructions = Uint8Array;
 export type OpCode = number;
 
 // biome-ignore lint/style/useEnumInitializers: <explanation>
@@ -17,7 +17,7 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 		operandWidths: [2],
 	},
 };
-const lookupOpCode = (opcode: OpCodes) => {
+export const lookupOpCode = (opcode: OpCodes) => {
 	const def = definitionsMap[opcode];
 	if (!def) {
 		throw new Error(`opcode undefined ${opcode}`);
@@ -50,4 +50,22 @@ export function make(opcode: OpCodes, ...operands: number[]) {
 		offset += width;
 	});
 	return new Uint8Array(dv.buffer);
+}
+export function readOperands(def: Definition, ins: Instructions) {
+	const dv = new DataView(ins.buffer);
+	const operands: number[] = [];
+	let offset = 0;
+	def.operandWidths.forEach((w, i) => {
+		switch (w) {
+			case 2:
+				operands[i] = dv.getUint16(offset);
+
+				break;
+
+			default:
+				break;
+		}
+		offset += w;
+	});
+	return [operands, offset];
 }
