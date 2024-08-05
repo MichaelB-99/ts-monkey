@@ -1,5 +1,13 @@
 import { describe, expect, it } from "bun:test";
-import { OpCodes, lookupOpCode, make, readOperands } from "./code";
+import { flattenTypedArrays } from "../utils/flatten-typed-arrays";
+import {
+	type Instructions,
+	OpCodes,
+	lookupOpCode,
+	make,
+	readOperands,
+	stringify,
+} from "./code";
 describe("make", () => {
 	it("should return a typed array with the opcode and the encoding of the operands ", () => {
 		const tests: { op: OpCodes; operands: number[]; expected: number[] }[] = [
@@ -36,4 +44,18 @@ it("should decode operands", () => {
 		expect(decodedOps).toEqual(operands);
 		expect(numBytesRead).toBe(bytesRead);
 	}
+});
+
+it("should stringify instructions", () => {
+	const instructions: Instructions[] = [
+		make(OpCodes.OpConstant, 1),
+		make(OpCodes.OpConstant, 2),
+		make(OpCodes.OpConstant, 65535),
+	];
+	const expected = `0000 OpConstant 1
+0003 OpConstant 2
+0006 OpConstant 65535`;
+	const flattenedIns = new Uint8Array(flattenTypedArrays(instructions));
+
+	expect(stringify(flattenedIns)).toEqual(expected);
 });

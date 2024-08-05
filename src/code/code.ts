@@ -67,5 +67,25 @@ export function readOperands(def: Definition, ins: Instructions) {
 		}
 		offset += w;
 	});
-	return [operands, offset];
+	return [operands, offset] as const;
 }
+
+export function stringify(instructions: Uint8Array) {
+	const res = [];
+	let i = 0;
+	while (i < instructions.length) {
+		const def = lookupOpCode(instructions[i]);
+		const [ops, read] = readOperands(def, instructions.slice(i + 1));
+		res.push(`${i.toString().padStart(4, "0")} ${formatInstruction(def, ops)}`);
+		i += 1 + read;
+	}
+	return res.join("\n");
+}
+const formatInstruction = (def: Definition, ops: number[]) => {
+	if (def.operandWidths.length !== ops.length) {
+		throw new Error(
+			`operand lengths don't match: ${def.name} expects ${def.operandWidths.length} operands, got ${ops.length}`,
+		);
+	}
+	return `${def.name} ${ops.join(",")}`;
+};
