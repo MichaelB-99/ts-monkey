@@ -10,12 +10,17 @@ describe("compiler", () => {
 	it("should compile integer arithmetic", () => {
 		const tests = [
 			{
-				input: "1+2-2",
+				input: "1",
+				expectedConstants: [1],
+				expectedInstructions: [make(OpCodes.OpConstant, 0)],
+			},
+			{
+				input: "1+2",
 				expectedConstants: [1, 2],
 				expectedInstructions: [
 					make(OpCodes.OpConstant, 0),
 					make(OpCodes.OpConstant, 1),
-					make(OpCodes.OpConstant, 2),
+					make(OpCodes.ADD),
 				],
 			},
 		];
@@ -34,7 +39,7 @@ const runCompilerTests = (
 ) => {
 	for (const { input, expectedConstants, expectedInstructions } of tests) {
 		const program = lexAndParse(input);
-		const compiler = new Compiler(new Uint8Array(), []);
+		const compiler = new Compiler();
 		compiler.compile(program);
 		const bytecode = compiler.bytecode();
 		testInstructions(bytecode.instructions, expectedInstructions);

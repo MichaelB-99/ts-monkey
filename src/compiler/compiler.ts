@@ -10,10 +10,8 @@ import { IntegerObject, type InternalObject } from "../object/object";
 import type { Maybe } from "../utils/types";
 
 export class Compiler {
-	constructor(
-		public instructions: Instructions,
-		public constants: Maybe<InternalObject>[],
-	) {}
+	public instructions: Instructions = new Uint8Array();
+	public constants: Maybe<InternalObject>[] = [];
 
 	compile(node: Maybe<Node>) {
 		if (node instanceof Program) {
@@ -33,7 +31,7 @@ export class Compiler {
 			this.emit(OpCodes.OpConstant, this.addConstant(integer));
 		}
 
-		return this;
+		return null;
 	}
 	addConstant(obj: Maybe<InternalObject>) {
 		this.constants.push(obj);
@@ -57,7 +55,7 @@ export class Compiler {
 	}
 }
 
-class Bytecode {
+export class Bytecode {
 	constructor(
 		public instructions: Instructions,
 		public constants: Maybe<InternalObject>[],
