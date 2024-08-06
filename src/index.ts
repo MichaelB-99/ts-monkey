@@ -1,15 +1,20 @@
 import { userInfo } from "node:os";
 import { Glob } from "bun";
+import { Compiler } from "./compiler/compiler";
 import { Environment } from "./eval/environment";
 import { evaluate } from "./eval/eval";
 import { Lexer } from "./lexer/lexer";
 import { Parser } from "./parser/parser";
 import { repl } from "./repl/repl";
+import { VM } from "./vm/vm";
 (async () => {
 	if (Bun.argv.includes("--repl")) {
 		Bun.argv.splice(Bun.argv.indexOf("--repl"), 1);
 		console.log(
-			`Hello, ${userInfo().username}! This is the monkey programming language`,
+			`Hello, ${userInfo().username}! This is the monkey programming language.`,
+		);
+		console.log(
+			`Monkey is running in ${Bun.argv.includes("-c") ? "vm" : "interpreter"} mode.`,
 		);
 		console.log("Feel free to type in commands");
 		repl();
@@ -31,7 +36,15 @@ async function runFiles() {
 					return;
 				}
 				const printAST = Bun.argv.includes("--ast");
-				console.log(file, evaluate(program, new Environment())?.inspect());
+				if (Bun.argv.includes("-c")) {
+					const compiler = new Compiler();
+					compiler.compile(program);
+					const vm = new VM(compiler.instructions, compiler.bytecode());
+					vm.run();
+					console.log(vm.stackTop()?.inspect());
+				} else {
+					console.log(file, evaluate(program, new Environment())?.inspect());
+				}
 				if (printAST) console.log(program);
 			});
 	}

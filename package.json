@@ -3,8 +3,9 @@
 	"module": "index.ts",
 	"type": "module",
 	"scripts": {
-		"repl": "bun run src/index.ts --repl",
-		"interpret": "bun run src/index.ts"
+		"monkey-repl": "bun run src/index.ts --repl",
+		"monkey-interpret": "bun run src/index.ts",
+		"monkey-run": "bun run src/index.ts -c"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.0",
