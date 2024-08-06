@@ -1,8 +1,10 @@
 import { parseArgs } from "node:util";
+import { Compiler } from "../compiler/compiler";
 import { Environment } from "../eval/environment";
 import { evaluate } from "../eval/eval";
 import { Lexer } from "../lexer/lexer";
 import { Parser } from "../parser/parser";
+import { VM } from "../vm/vm";
 export async function repl() {
 	const env = new Environment();
 	const { values } = parseArgs({
@@ -11,6 +13,11 @@ export async function repl() {
 			ast: {
 				type: "boolean",
 				default: false,
+			},
+			compiler: {
+				type: "boolean",
+				default: false,
+				short: "c",
 			},
 		},
 		allowPositionals: true,
@@ -24,10 +31,20 @@ export async function repl() {
 			printParserErrors(parser.errors);
 			continue;
 		}
-		const evaluated = evaluate(program, env);
-		if (evaluated) {
-			console.log(evaluated.inspect());
+
+		if (values.compiler) {
+			const compiler = new Compiler();
+			compiler.compile(program);
+			const vm = new VM(compiler.instructions, compiler.bytecode());
+			vm.run();
+			console.log(vm.stackTop()?.inspect());
+		} else {
+			const evaluated = evaluate(program, env);
+			if (evaluated) {
+				console.log(evaluated.inspect());
+			}
 		}
+
 		if (values.ast) {
 			console.log(program.statements[0]);
 		}
