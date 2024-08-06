@@ -4,6 +4,7 @@ export type OpCode = number;
 // biome-ignore lint/style/useEnumInitializers: <explanation>
 export enum OpCodes {
 	OpConstant,
+	ADD,
 }
 type Definition = {
 	name: string;
@@ -15,6 +16,10 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	[OpCodes.OpConstant]: {
 		name: OpCodes[OpCodes.OpConstant],
 		operandWidths: [2],
+	},
+	[OpCodes.ADD]: {
+		name: OpCodes[OpCodes.ADD],
+		operandWidths: [],
 	},
 };
 export const lookupOpCode = (opcode: OpCodes) => {
@@ -88,4 +93,9 @@ const formatInstruction = (def: Definition, ops: number[]) => {
 		);
 	}
 	return `${def.name} ${ops.join(",")}`;
+};
+
+export const readUint16 = (arr: Instructions) => {
+	const dv = new DataView(arr.buffer);
+	return dv.getUint16(0);
 };

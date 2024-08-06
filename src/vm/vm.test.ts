@@ -16,7 +16,7 @@ describe("vm", () => {
 			{ input: "1", expected: 1 },
 
 			{ input: "2", expected: 2 },
-			{ input: "1+2", expected: 2 }, // fix
+			{ input: "1+2", expected: 3 },
 		]);
 	});
 });

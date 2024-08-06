@@ -25,6 +25,14 @@ export class Compiler {
 		if (node instanceof InfixExpression) {
 			this.compile(node.leftExpr);
 			this.compile(node.rightExpr);
+			switch (node.operator) {
+				case "+":
+					this.emit(OpCodes.ADD);
+					break;
+
+				default:
+					break;
+			}
 		}
 		if (node instanceof IntegerLiteral) {
 			const integer = new IntegerObject(node.value!);
