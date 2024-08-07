@@ -37,7 +37,7 @@ export async function repl() {
 			compiler.compile(program);
 			const vm = new VM(compiler.instructions, compiler.bytecode());
 			vm.run();
-			console.log(vm.stackTop()?.inspect());
+			console.log(vm.lastPoppedElement()?.inspect());
 		} else {
 			const evaluated = evaluate(program, env);
 			if (evaluated) {

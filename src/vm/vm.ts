@@ -11,6 +11,7 @@ export class VM {
 	) {}
 	public stack: Maybe<InternalObject>[] = [];
 	public lastPoppedStackElement: Maybe<InternalObject>;
+	public stackPointer = 0;
 	run() {
 		for (let i = 0; i < this.instructions.length; i++) {
 			const op: OpCodes = this.instructions[i];
@@ -23,16 +24,16 @@ export class VM {
 				}
 
 				case OpCodes.OpAdd: {
-					const n2 = this.stack.pop()!;
-					const n1 = this.stack.pop()!;
+					const n2 = this.pop();
+					const n1 = this.pop();
 					if (!(n1 instanceof IntegerObject && n2 instanceof IntegerObject))
 						throw new Error("ADD operand only works with integers"); // will update to work with strings
-					this.stack.push(new IntegerObject(n1.value + n2.value));
+					this.push(new IntegerObject(n1.value + n2.value));
 					break;
 				}
 
 				case OpCodes.OpPop:
-					this.lastPoppedStackElement = this.stack.pop();
+					this.pop();
 					break;
 				default:
 					break;
@@ -40,17 +41,20 @@ export class VM {
 		}
 	}
 
-	stackTop() {
-		return this.stack.at(-1);
+	lastPoppedElement() {
+		return this.stack[this.stackPointer];
 	}
 
-	get stackPointer() {
-		return this.stack.length;
-	}
 	push(obj: Maybe<InternalObject>) {
 		if (this.stackPointer >= STACK_SIZE) {
 			throw new Error("Stack overflow");
 		}
-		this.stack.push(obj);
+		this.stack[this.stackPointer] = obj;
+		this.stackPointer++;
+	}
+	pop() {
+		const obj = this.stack[this.stackPointer - 1];
+		this.stackPointer--;
+		return obj;
 	}
 }

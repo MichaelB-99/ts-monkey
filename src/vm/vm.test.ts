@@ -36,7 +36,7 @@ const runVmTests = (
 		const bytecode = compiler.bytecode();
 		const vm = new VM(compiler.instructions, bytecode);
 		vm.run();
-		const stackElement = vm.lastPoppedStackElement;
+		const stackElement = vm.lastPoppedElement();
 		testExpectedObject(stackElement!, expected);
 	}
 };
