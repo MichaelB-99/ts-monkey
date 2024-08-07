@@ -21,7 +21,7 @@ export class VM {
 					break;
 				}
 
-				case OpCodes.ADD: {
+				case OpCodes.OpAdd: {
 					const n2 = this.stack.pop()!;
 					const n1 = this.stack.pop()!;
 					if (!(n1 instanceof IntegerObject && n2 instanceof IntegerObject))

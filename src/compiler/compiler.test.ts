@@ -20,7 +20,18 @@ describe("compiler", () => {
 				expectedInstructions: [
 					make(OpCodes.OpConstant, 0),
 					make(OpCodes.OpConstant, 1),
-					make(OpCodes.ADD),
+					make(OpCodes.OpAdd),
+				],
+			},
+			{
+				input: "1+2+3",
+				expectedConstants: [1, 2, 3],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpAdd),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpAdd),
 				],
 			},
 		];

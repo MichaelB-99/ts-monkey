@@ -4,7 +4,7 @@ export type OpCode = number;
 // biome-ignore lint/style/useEnumInitializers: <explanation>
 export enum OpCodes {
 	OpConstant,
-	ADD,
+	OpAdd,
 }
 type Definition = {
 	name: string;
@@ -17,8 +17,8 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 		name: OpCodes[OpCodes.OpConstant],
 		operandWidths: [2],
 	},
-	[OpCodes.ADD]: {
-		name: OpCodes[OpCodes.ADD],
+	[OpCodes.OpAdd]: {
+		name: OpCodes[OpCodes.OpAdd],
 		operandWidths: [],
 	},
 };

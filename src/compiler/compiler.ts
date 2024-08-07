@@ -27,7 +27,7 @@ export class Compiler {
 			this.compile(node.rightExpr);
 			switch (node.operator) {
 				case "+":
-					this.emit(OpCodes.ADD);
+					this.emit(OpCodes.OpAdd);
 					break;
 
 				default:
