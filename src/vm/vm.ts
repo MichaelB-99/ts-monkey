@@ -10,6 +10,7 @@ export class VM {
 		private bytecode: Bytecode,
 	) {}
 	public stack: Maybe<InternalObject>[] = [];
+	public lastPoppedStackElement: Maybe<InternalObject>;
 	run() {
 		for (let i = 0; i < this.instructions.length; i++) {
 			const op: OpCodes = this.instructions[i];
@@ -30,6 +31,9 @@ export class VM {
 					break;
 				}
 
+				case OpCodes.OpPop:
+					this.lastPoppedStackElement = this.stack.pop();
+					break;
 				default:
 					break;
 			}

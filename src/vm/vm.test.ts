@@ -17,6 +17,7 @@ describe("vm", () => {
 
 			{ input: "2", expected: 2 },
 			{ input: "1+2", expected: 3 },
+			{ input: "1;2;", expected: 2 },
 		]);
 	});
 });
@@ -35,7 +36,7 @@ const runVmTests = (
 		const bytecode = compiler.bytecode();
 		const vm = new VM(compiler.instructions, bytecode);
 		vm.run();
-		const stackElement = vm.stackTop();
+		const stackElement = vm.lastPoppedStackElement;
 		testExpectedObject(stackElement!, expected);
 	}
 };

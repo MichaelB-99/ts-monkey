@@ -21,6 +21,7 @@ export class Compiler {
 		}
 		if (node instanceof ExpressionStatement) {
 			this.compile(node.expression);
+			this.emit(OpCodes.OpPop);
 		}
 		if (node instanceof InfixExpression) {
 			this.compile(node.leftExpr);

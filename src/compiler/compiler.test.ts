@@ -12,7 +12,10 @@ describe("compiler", () => {
 			{
 				input: "1",
 				expectedConstants: [1],
-				expectedInstructions: [make(OpCodes.OpConstant, 0)],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpPop),
+				],
 			},
 			{
 				input: "1+2",
@@ -21,6 +24,7 @@ describe("compiler", () => {
 					make(OpCodes.OpConstant, 0),
 					make(OpCodes.OpConstant, 1),
 					make(OpCodes.OpAdd),
+					make(OpCodes.OpPop),
 				],
 			},
 			{
@@ -32,6 +36,17 @@ describe("compiler", () => {
 					make(OpCodes.OpAdd),
 					make(OpCodes.OpConstant, 2),
 					make(OpCodes.OpAdd),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "1;2;",
+				expectedConstants: [1, 2],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpPop),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpPop),
 				],
 			},
 		];

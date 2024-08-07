@@ -5,6 +5,7 @@ export type OpCode = number;
 export enum OpCodes {
 	OpConstant,
 	OpAdd,
+	OpPop,
 }
 type Definition = {
 	name: string;
@@ -19,6 +20,10 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpAdd]: {
 		name: OpCodes[OpCodes.OpAdd],
+		operandWidths: [],
+	},
+	[OpCodes.OpPop]: {
+		name: OpCodes[OpCodes.OpPop],
 		operandWidths: [],
 	},
 };
