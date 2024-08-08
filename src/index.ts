@@ -41,7 +41,7 @@ async function runFiles() {
 					compiler.compile(program);
 					const vm = new VM(compiler.instructions, compiler.bytecode());
 					vm.run();
-					console.log(vm.stackTop()?.inspect());
+					console.log(vm.lastPoppedElement()?.inspect());
 				} else {
 					console.log(file, evaluate(program, new Environment())?.inspect());
 				}
