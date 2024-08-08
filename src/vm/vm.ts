@@ -23,15 +23,13 @@ export class VM {
 					break;
 				}
 
+				case OpCodes.OpSub:
+				case OpCodes.OpMult:
+				case OpCodes.OpDiv:
 				case OpCodes.OpAdd: {
-					const n2 = this.pop();
-					const n1 = this.pop();
-					if (!(n1 instanceof IntegerObject && n2 instanceof IntegerObject))
-						throw new Error("ADD operand only works with integers"); // will update to work with strings
-					this.push(new IntegerObject(n1.value + n2.value));
+					this.doBinaryOp(op);
 					break;
 				}
-
 				case OpCodes.OpPop:
 					this.pop();
 					break;
@@ -56,5 +54,27 @@ export class VM {
 		const obj = this.stack[this.stackPointer - 1];
 		this.stackPointer--;
 		return obj;
+	}
+	doBinaryOp(op: OpCodes) {
+		const n2 = this.pop();
+		const n1 = this.pop();
+		if (n1 instanceof IntegerObject && n2 instanceof IntegerObject) {
+			this.doIntegerBinaryOp(n1, op, n2);
+		}
+	}
+	doIntegerBinaryOp(n1: IntegerObject, op: OpCodes, n2: IntegerObject) {
+		switch (op) {
+			case OpCodes.OpAdd:
+				return this.push(new IntegerObject(n1.value + n2.value));
+			case OpCodes.OpMult:
+				return this.push(new IntegerObject(n1.value * n2.value));
+			case OpCodes.OpDiv:
+				return this.push(new IntegerObject(n1.value / n2.value));
+			case OpCodes.OpSub:
+				return this.push(new IntegerObject(n1.value - n2.value));
+
+			default:
+				break;
+		}
 	}
 }

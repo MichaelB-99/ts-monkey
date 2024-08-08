@@ -28,6 +28,16 @@ describe("compiler", () => {
 				],
 			},
 			{
+				input: "1-2",
+				expectedConstants: [1, 2],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpSub),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
 				input: "1+2+3",
 				expectedConstants: [1, 2, 3],
 				expectedInstructions: [

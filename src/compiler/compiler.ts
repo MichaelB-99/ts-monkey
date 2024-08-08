@@ -31,6 +31,16 @@ export class Compiler {
 					this.emit(OpCodes.OpAdd);
 					break;
 
+				case "-":
+					this.emit(OpCodes.OpSub);
+					break;
+
+				case "*":
+					this.emit(OpCodes.OpMult);
+					break;
+				case "/":
+					this.emit(OpCodes.OpDiv);
+					break;
 				default:
 					break;
 			}
