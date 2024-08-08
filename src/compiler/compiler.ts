@@ -1,4 +1,5 @@
 import {
+	BooleanLiteral,
 	ExpressionStatement,
 	InfixExpression,
 	IntegerLiteral,
@@ -22,6 +23,13 @@ export class Compiler {
 		if (node instanceof ExpressionStatement) {
 			this.compile(node.expression);
 			this.emit(OpCodes.OpPop);
+		}
+		if (node instanceof BooleanLiteral) {
+			if (node.value) {
+				this.emit(OpCodes.OpTrue);
+			} else {
+				this.emit(OpCodes.OpFalse);
+			}
 		}
 		if (node instanceof InfixExpression) {
 			this.compile(node.leftExpr);

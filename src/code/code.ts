@@ -9,6 +9,8 @@ export enum OpCodes {
 	OpSub,
 	OpMult,
 	OpDiv,
+	OpTrue,
+	OpFalse,
 }
 type Definition = {
 	name: string;
@@ -39,6 +41,15 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpDiv]: {
 		name: OpCodes[OpCodes.OpDiv],
+		operandWidths: [],
+	},
+
+	[OpCodes.OpTrue]: {
+		name: OpCodes[OpCodes.OpTrue],
+		operandWidths: [],
+	},
+	[OpCodes.OpFalse]: {
+		name: OpCodes[OpCodes.OpFalse],
 		operandWidths: [],
 	},
 };

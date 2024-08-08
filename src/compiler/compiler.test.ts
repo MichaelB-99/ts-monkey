@@ -59,6 +59,16 @@ describe("compiler", () => {
 					make(OpCodes.OpPop),
 				],
 			},
+			{
+				input: "true",
+				expectedConstants: [],
+				expectedInstructions: [make(OpCodes.OpTrue), make(OpCodes.OpPop)],
+			},
+			{
+				input: "false",
+				expectedConstants: [],
+				expectedInstructions: [make(OpCodes.OpFalse), make(OpCodes.OpPop)],
+			},
 		];
 		runCompilerTests(tests);
 	});
@@ -69,7 +79,7 @@ const lexAndParse = (input: string) =>
 const runCompilerTests = (
 	tests: {
 		input: string;
-		expectedConstants: number[];
+		expectedConstants: (number | boolean)[];
 		expectedInstructions: Uint8Array[];
 	}[],
 ) => {

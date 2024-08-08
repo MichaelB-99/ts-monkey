@@ -1,6 +1,11 @@
 import { type Instructions, OpCodes, readUint16 } from "../code/code";
 import type { Bytecode } from "../compiler/compiler";
-import { IntegerObject, type InternalObject } from "../object/object";
+import {
+	FALSE_OBJ,
+	IntegerObject,
+	type InternalObject,
+	TRUE_OBJ,
+} from "../object/object";
 import type { Maybe } from "../utils/types";
 
 const STACK_SIZE = 2048;
@@ -23,6 +28,12 @@ export class VM {
 					break;
 				}
 
+				case OpCodes.OpTrue:
+					this.push(TRUE_OBJ);
+					break;
+				case OpCodes.OpFalse:
+					this.push(FALSE_OBJ);
+					break;
 				case OpCodes.OpSub:
 				case OpCodes.OpMult:
 				case OpCodes.OpDiv:

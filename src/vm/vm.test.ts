@@ -1,7 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { Compiler } from "../compiler/compiler";
 import { Lexer } from "../lexer/lexer";
-import { IntegerObject, type InternalObject } from "../object/object";
+import {
+	BooleanObject,
+	IntegerObject,
+	type InternalObject,
+} from "../object/object";
 import { Parser } from "../parser/parser";
 import { VM } from "./vm";
 const testIntegerObject = (obj: InternalObject, expected: number) => {
@@ -11,7 +15,7 @@ const testIntegerObject = (obj: InternalObject, expected: number) => {
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();
 describe("vm", () => {
-	it("should run infix expressions", () => {
+	it("should execute infix expressions", () => {
 		runVmTests([
 			{ input: "1", expected: 1 },
 			{ input: "2", expected: 2 },
@@ -27,6 +31,12 @@ describe("vm", () => {
 			{ input: "5 * 2 + 10", expected: 20 },
 			{ input: "5 + 2 * 10", expected: 25 },
 			{ input: "5 * (2 + 10)", expected: 60 },
+		]);
+	});
+	it("should execute boolean expressions", () => {
+		runVmTests([
+			{ input: "true", expected: true },
+			{ input: "false", expected: false },
 		]);
 	});
 });
@@ -57,7 +67,15 @@ const testExpectedObject = (actual: InternalObject, expected: any) => {
 			testIntegerObject(actual, expected);
 			break;
 
+		case "boolean":
+			testBooleanObject(actual as BooleanObject, expected);
+			break;
+
 		default:
 			break;
 	}
 };
+function testBooleanObject(boolObj: BooleanObject, expected: boolean) {
+	expect(boolObj).toBeInstanceOf(BooleanObject);
+	expect(boolObj.value).toBe(expected);
+}
