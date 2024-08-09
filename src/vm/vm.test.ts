@@ -31,6 +31,21 @@ describe("vm", () => {
 			{ input: "5 * 2 + 10", expected: 20 },
 			{ input: "5 + 2 * 10", expected: 25 },
 			{ input: "5 * (2 + 10)", expected: 60 },
+			{ input: "2>1", expected: true },
+			{ input: "1<2", expected: true },
+			{ input: "1<=2", expected: true },
+
+			{ input: "5>=2", expected: true },
+			{ input: "2>=2", expected: true },
+			{ input: "1>=1", expected: true },
+			{ input: "(1 < 2) == true", expected: true },
+			{ input: "(1 < 2) == false", expected: false },
+			{ input: "(1 > 2) == true", expected: false },
+			{ input: "(1 > 2) == false", expected: true },
+			{ input: "true==true", expected: true },
+			{ input: "false==false", expected: true },
+			{ input: "true!=false", expected: true },
+			{ input: "false==true", expected: false },
 		]);
 	});
 	it("should execute boolean expressions", () => {

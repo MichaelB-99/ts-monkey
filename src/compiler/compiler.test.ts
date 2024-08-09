@@ -69,6 +69,76 @@ describe("compiler", () => {
 				expectedConstants: [],
 				expectedInstructions: [make(OpCodes.OpFalse), make(OpCodes.OpPop)],
 			},
+			{
+				input: "5>2",
+				expectedConstants: [5, 2],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpGreaterThan),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "1<2",
+				expectedConstants: [2, 1],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpGreaterThan),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "1>=1",
+				expectedConstants: [1, 1],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpGreaterThanOrEqual),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "5<=10",
+				expectedConstants: [10, 5],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpGreaterThanOrEqual),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "true!=false",
+				expectedConstants: [],
+				expectedInstructions: [
+					make(OpCodes.OpTrue, 0),
+					make(OpCodes.OpFalse, 1),
+					make(OpCodes.OpNotEqual),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "1==1",
+				expectedConstants: [1, 1],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpEqual),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "2!=1",
+				expectedConstants: [2, 1],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpNotEqual),
+					make(OpCodes.OpPop),
+				],
+			},
 		];
 		runCompilerTests(tests);
 	});

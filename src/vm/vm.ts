@@ -41,6 +41,13 @@ export class VM {
 					this.doBinaryOp(op);
 					break;
 				}
+				case OpCodes.OpNotEqual:
+				case OpCodes.OpGreaterThan:
+				case OpCodes.OpGreaterThanOrEqual:
+				case OpCodes.OpEqual:
+					this.executeComparison(op);
+					break;
+
 				case OpCodes.OpPop:
 					this.pop();
 					break;
@@ -88,4 +95,56 @@ export class VM {
 				break;
 		}
 	}
+	executeComparison(op: OpCodes) {
+		const right = this.pop();
+		const left = this.pop();
+
+		if (left instanceof IntegerObject && right instanceof IntegerObject) {
+			return this.executeIntegerComparison(left, op, right);
+		}
+		// TODO string comparison
+		switch (op) {
+			case OpCodes.OpEqual:
+				this.push(this.nativeBoolToBooleanObject(left === right));
+				break;
+			case OpCodes.OpNotEqual:
+				this.push(this.nativeBoolToBooleanObject(left !== right));
+				break;
+
+			default:
+				throw new Error(
+					`unknown operator ${op}, ${left?.type()}, ${right?.type()}`,
+				);
+		}
+	}
+	executeIntegerComparison(
+		left: IntegerObject,
+		op: OpCodes,
+		right: IntegerObject,
+	) {
+		switch (op) {
+			case OpCodes.OpEqual:
+				return this.push(
+					this.nativeBoolToBooleanObject(left.value === right.value),
+				);
+			case OpCodes.OpNotEqual:
+				return this.push(
+					this.nativeBoolToBooleanObject(left.value !== right.value),
+				);
+			case OpCodes.OpGreaterThan:
+				return this.push(
+					this.nativeBoolToBooleanObject(left.value > right.value),
+				);
+			case OpCodes.OpGreaterThanOrEqual:
+				return this.push(
+					this.nativeBoolToBooleanObject(left.value >= right.value),
+				);
+
+			default:
+				throw new Error(`unknown operator ${op}`);
+		}
+	}
+	nativeBoolToBooleanObject = (bool: boolean) => {
+		return bool ? TRUE_OBJ : FALSE_OBJ;
+	};
 }

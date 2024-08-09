@@ -32,6 +32,18 @@ export class Compiler {
 			}
 		}
 		if (node instanceof InfixExpression) {
+			if (node.operator === "<") {
+				this.compile(node.rightExpr);
+				this.compile(node.leftExpr);
+				this.emit(OpCodes.OpGreaterThan);
+				return null;
+			}
+			if (node.operator === "<=") {
+				this.compile(node.rightExpr);
+				this.compile(node.leftExpr);
+				this.emit(OpCodes.OpGreaterThanOrEqual);
+				return null;
+			}
 			this.compile(node.leftExpr);
 			this.compile(node.rightExpr);
 			switch (node.operator) {
@@ -48,6 +60,21 @@ export class Compiler {
 					break;
 				case "/":
 					this.emit(OpCodes.OpDiv);
+					break;
+
+				case "==":
+					this.emit(OpCodes.OpEqual);
+					break;
+
+				case "!=":
+					this.emit(OpCodes.OpNotEqual);
+					break;
+
+				case ">":
+					this.emit(OpCodes.OpGreaterThan);
+					break;
+				case ">=":
+					this.emit(OpCodes.OpGreaterThanOrEqual);
 					break;
 				default:
 					break;
