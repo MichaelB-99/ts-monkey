@@ -15,7 +15,7 @@ const testIntegerObject = (obj: InternalObject, expected: number) => {
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();
 describe("vm", () => {
-	it("should execute infix expressions", () => {
+	it("should execute integer arithmetic", () => {
 		runVmTests([
 			{ input: "1", expected: 1 },
 			{ input: "2", expected: 2 },
@@ -31,10 +31,14 @@ describe("vm", () => {
 			{ input: "5 * 2 + 10", expected: 20 },
 			{ input: "5 + 2 * 10", expected: 25 },
 			{ input: "5 * (2 + 10)", expected: 60 },
+		]);
+	});
+
+	it("should execute boolean expressions", () => {
+		runVmTests([
 			{ input: "2>1", expected: true },
 			{ input: "1<2", expected: true },
 			{ input: "1<=2", expected: true },
-
 			{ input: "5>=2", expected: true },
 			{ input: "2>=2", expected: true },
 			{ input: "1>=1", expected: true },
@@ -46,12 +50,13 @@ describe("vm", () => {
 			{ input: "false==false", expected: true },
 			{ input: "true!=false", expected: true },
 			{ input: "false==true", expected: false },
-		]);
-	});
-	it("should execute boolean expressions", () => {
-		runVmTests([
 			{ input: "true", expected: true },
 			{ input: "false", expected: false },
+			{ input: "!true", expected: false },
+			{ input: "!!true", expected: true },
+			{ input: "!false", expected: true },
+			{ input: "!5", expected: false },
+			{ input: "!!5", expected: true },
 		]);
 	});
 });

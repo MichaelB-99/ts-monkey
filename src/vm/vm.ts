@@ -48,6 +48,13 @@ export class VM {
 					this.executeComparison(op);
 					break;
 
+				case OpCodes.OpBang:
+					this.executeBangOperator();
+					break;
+				case OpCodes.OpMinus:
+					this.executeMinusOperator();
+					break;
+
 				case OpCodes.OpPop:
 					this.pop();
 					break;
@@ -143,6 +150,26 @@ export class VM {
 			default:
 				throw new Error(`unknown operator ${op}`);
 		}
+	}
+	executeBangOperator() {
+		const val = this.pop();
+		switch (val) {
+			case TRUE_OBJ:
+				return this.push(FALSE_OBJ);
+
+			case FALSE_OBJ:
+				return this.push(TRUE_OBJ);
+
+			default:
+				return this.push(FALSE_OBJ);
+		}
+	}
+	executeMinusOperator() {
+		const val = this.pop();
+		if (!(val instanceof IntegerObject)) {
+			throw new Error("TypeError: unsupported type for negation");
+		}
+		this.push(new IntegerObject(-val.value));
 	}
 	nativeBoolToBooleanObject = (bool: boolean) => {
 		return bool ? TRUE_OBJ : FALSE_OBJ;

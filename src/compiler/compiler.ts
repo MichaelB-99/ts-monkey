@@ -4,6 +4,7 @@ import {
 	InfixExpression,
 	IntegerLiteral,
 	type Node,
+	PrefixExpression,
 	Program,
 } from "../ast/ast";
 import { type Instructions, OpCodes, make } from "../code/code";
@@ -76,6 +77,20 @@ export class Compiler {
 				case ">=":
 					this.emit(OpCodes.OpGreaterThanOrEqual);
 					break;
+				default:
+					break;
+			}
+		}
+		if (node instanceof PrefixExpression) {
+			this.compile(node.rightExpression);
+			switch (node.operator) {
+				case "!":
+					this.emit(OpCodes.OpBang);
+					break;
+				case "-":
+					this.emit(OpCodes.OpMinus);
+					break;
+
 				default:
 					break;
 			}

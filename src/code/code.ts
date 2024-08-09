@@ -15,6 +15,8 @@ export enum OpCodes {
 	OpNotEqual,
 	OpGreaterThan,
 	OpGreaterThanOrEqual,
+	OpMinus,
+	OpBang,
 }
 type Definition = {
 	name: string;
@@ -70,6 +72,14 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpGreaterThanOrEqual]: {
 		name: OpCodes[OpCodes.OpGreaterThanOrEqual],
+		operandWidths: [],
+	},
+	[OpCodes.OpMinus]: {
+		name: OpCodes[OpCodes.OpMinus],
+		operandWidths: [],
+	},
+	[OpCodes.OpBang]: {
+		name: OpCodes[OpCodes.OpBang],
 		operandWidths: [],
 	},
 };

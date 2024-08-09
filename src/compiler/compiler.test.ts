@@ -60,6 +60,24 @@ describe("compiler", () => {
 				],
 			},
 			{
+				input: "-1",
+				expectedConstants: [1],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpMinus),
+					make(OpCodes.OpPop),
+				],
+			},
+		];
+		runCompilerTests(tests);
+	});
+	it("should compile boolean expressions", () => {
+		const tests: {
+			input: string;
+			expectedConstants: number[];
+			expectedInstructions: Uint8Array[];
+		}[] = [
+			{
 				input: "true",
 				expectedConstants: [],
 				expectedInstructions: [make(OpCodes.OpTrue), make(OpCodes.OpPop)],
@@ -136,6 +154,15 @@ describe("compiler", () => {
 					make(OpCodes.OpConstant, 0),
 					make(OpCodes.OpConstant, 1),
 					make(OpCodes.OpNotEqual),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "!true",
+				expectedConstants: [],
+				expectedInstructions: [
+					make(OpCodes.OpTrue),
+					make(OpCodes.OpBang),
 					make(OpCodes.OpPop),
 				],
 			},
