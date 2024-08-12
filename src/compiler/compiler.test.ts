@@ -225,6 +225,68 @@ describe("compiler", () => {
 					make(OpCodes.OpPop),
 				],
 			},
+			{
+				input: "if(5+5){10}; 50;",
+				expectedConstants: [5, 5, 10, 50],
+				expectedInstructions: [
+					// #0000
+					make(OpCodes.OpConstant, 0),
+					// #0003
+					make(OpCodes.OpConstant, 1),
+					// #0006
+					make(OpCodes.OpAdd),
+					// #0007
+					make(OpCodes.OpJumpNotTruthy, 16),
+					// #0010
+					make(OpCodes.OpConstant, 2),
+					// #0013
+					make(OpCodes.OpJump, 17),
+					// #0016
+					make(OpCodes.OpNull),
+					// #0017
+					make(OpCodes.OpPop),
+					// #0018
+					make(OpCodes.OpConstant, 3),
+					// #0021
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "if(true){200}",
+				expectedConstants: [200],
+				expectedInstructions: [
+					// #0000
+					make(OpCodes.OpTrue),
+					// #0001
+					make(OpCodes.OpJumpNotTruthy, 10),
+					// #0004
+					make(OpCodes.OpConstant, 0),
+					// #0007
+					make(OpCodes.OpJump, 11),
+					// #0010
+					make(OpCodes.OpNull),
+					// #0011
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "if(false){200} else {100}",
+				expectedConstants: [200, 100],
+				expectedInstructions: [
+					// #0000
+					make(OpCodes.OpFalse),
+					// #0001
+					make(OpCodes.OpJumpNotTruthy, 10),
+					// #0004
+					make(OpCodes.OpConstant, 0),
+					// #0007
+					make(OpCodes.OpJump, 13),
+					// #0010
+					make(OpCodes.OpConstant, 1),
+					// #0013
+					make(OpCodes.OpPop),
+				],
+			},
 		]);
 	});
 });
