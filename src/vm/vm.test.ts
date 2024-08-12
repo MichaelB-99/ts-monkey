@@ -5,6 +5,7 @@ import {
 	BooleanObject,
 	IntegerObject,
 	type InternalObject,
+	NULL_OBJ,
 } from "../object/object";
 import { Parser } from "../parser/parser";
 import { VM } from "./vm";
@@ -57,6 +58,20 @@ describe("vm", () => {
 			{ input: "!false", expected: true },
 			{ input: "!5", expected: false },
 			{ input: "!!5", expected: true },
+			{ input: "!(if(false){100})", expected: true },
+			{ input: "if(if(false){10}){10} else {20}", expected: 20 },
+		]);
+	});
+	it("should execute if expressions", () => {
+		runVmTests([
+			{ input: "if (true) { 10 }", expected: 10 },
+			{ input: "if (true) { 10 } else { 20 }", expected: 10 },
+			{ input: "if (false) { 10 } ", expected: null },
+			{ input: "if (false) { 10 } else { 20 } ", expected: 20 },
+			{ input: "if (1) { 10 }", expected: 10 },
+			{ input: "if (1 < 2) { 10 }", expected: 10 },
+			{ input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
+			{ input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
 		]);
 	});
 });
@@ -82,6 +97,9 @@ const runVmTests = (
 
 // biome-ignore lint/suspicious/noExplicitAny:
 const testExpectedObject = (actual: InternalObject, expected: any) => {
+	if (expected === null) {
+		expect(actual).toBe(NULL_OBJ);
+	}
 	switch (typeof expected) {
 		case "number":
 			testIntegerObject(actual, expected);

@@ -166,8 +166,66 @@ describe("compiler", () => {
 					make(OpCodes.OpPop),
 				],
 			},
+			{
+				input: "!!true",
+				expectedConstants: [],
+				expectedInstructions: [
+					make(OpCodes.OpTrue),
+					make(OpCodes.OpBang),
+					make(OpCodes.OpBang),
+					make(OpCodes.OpPop),
+				],
+			},
 		];
 		runCompilerTests(tests);
+	});
+	it("should compile if expressions", () => {
+		runCompilerTests([
+			{
+				input: "if(true){10}; 50;",
+				expectedConstants: [10, 50],
+				expectedInstructions: [
+					// #0000
+					make(OpCodes.OpTrue),
+					// #0001
+					make(OpCodes.OpJumpNotTruthy, 10),
+					// #0004
+					make(OpCodes.OpConstant, 0),
+					// #0007
+					make(OpCodes.OpJump, 11),
+					// #0010
+					make(OpCodes.OpNull),
+					// #0011
+					make(OpCodes.OpPop),
+					// #0012
+					make(OpCodes.OpConstant, 1),
+					// #0015
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "if (true) { 10 } else { 20 }; 3333;",
+				expectedConstants: [10, 20, 3333],
+				expectedInstructions: [
+					// #000
+					make(OpCodes.OpTrue),
+					// #001
+					make(OpCodes.OpJumpNotTruthy, 10),
+					// #004
+					make(OpCodes.OpConstant, 0),
+					// #007
+					make(OpCodes.OpJump, 13),
+					// #010
+					make(OpCodes.OpConstant, 1),
+					// #013
+					make(OpCodes.OpPop),
+					// #014
+					make(OpCodes.OpConstant, 2),
+					// #017
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
 	});
 });
 const lexAndParse = (input: string) =>

@@ -1,6 +1,8 @@
 import {
+	BlockStatement,
 	BooleanLiteral,
 	ExpressionStatement,
+	IfExpression,
 	InfixExpression,
 	IntegerLiteral,
 	type Node,
@@ -14,6 +16,8 @@ import type { Maybe } from "../utils/types";
 export class Compiler {
 	public instructions: Instructions = new Uint8Array();
 	public constants: Maybe<InternalObject>[] = [];
+	public previousInstruction: Maybe<EmittedInstruction>;
+	lastInstruction: Maybe<EmittedInstruction>;
 
 	compile(node: Maybe<Node>) {
 		if (node instanceof Program) {
@@ -81,6 +85,36 @@ export class Compiler {
 					break;
 			}
 		}
+		if (node instanceof IfExpression) {
+			this.compile(node.condition);
+			const jumpNotTruthyPos = this.emit(OpCodes.OpJumpNotTruthy, 9999);
+			this.compile(node.consequence);
+
+			if (this.lastInstruction?.opcode === OpCodes.OpPop) {
+				this.removeLastPop();
+			}
+
+			const jumpPos = this.emit(OpCodes.OpJump, 9999);
+			const afterConsequencePos = this.instructions.length;
+			this.changeOperand(jumpNotTruthyPos, afterConsequencePos);
+
+			if (!node.alternative) {
+				this.emit(OpCodes.OpNull);
+			} else {
+				this.compile(node.alternative);
+				if (this.lastInstruction?.opcode === OpCodes.OpPop) {
+					this.removeLastPop();
+				}
+			}
+
+			const afterAlternativePos = this.instructions.length;
+			this.changeOperand(jumpPos, afterAlternativePos);
+		}
+		if (node instanceof BlockStatement) {
+			for (const statement of node.statements) {
+				this.compile(statement);
+			}
+		}
 		if (node instanceof PrefixExpression) {
 			this.compile(node.rightExpression);
 			switch (node.operator) {
@@ -95,6 +129,7 @@ export class Compiler {
 					break;
 			}
 		}
+
 		if (node instanceof IntegerLiteral) {
 			const integer = new IntegerObject(node.value!);
 			this.emit(OpCodes.OpConstant, this.addConstant(integer));
@@ -109,7 +144,26 @@ export class Compiler {
 	emit(op: OpCodes, ...operands: number[]) {
 		const instruction = make(op, ...operands);
 		const pos = this.addInstruction(instruction);
+		this.setLastInstruction(op, pos);
 		return pos;
+	}
+	setLastInstruction(op: OpCodes, pos: number) {
+		const prev = this.lastInstruction;
+		this.lastInstruction = { opcode: op, pos };
+		this.previousInstruction = prev;
+	}
+	removeLastPop() {
+		this.instructions = this.instructions.slice(0, this.lastInstruction?.pos);
+		this.lastInstruction = this.previousInstruction;
+	}
+	replaceInstruction(pos: number, newInstruction: Uint8Array) {
+		for (let i = 0; i < newInstruction.length; i++) {
+			this.instructions[pos + i] = newInstruction[i];
+		}
+	}
+	changeOperand(opPos: number, operand: number) {
+		const newInstruction = make(this.instructions[opPos], operand);
+		this.replaceInstruction(opPos, newInstruction);
 	}
 	addInstruction(ins: Uint8Array) {
 		const pos = this.instructions.length;
@@ -119,6 +173,7 @@ export class Compiler {
 		this.instructions = newArr;
 		return pos;
 	}
+
 	bytecode() {
 		return new Bytecode(this.instructions, this.constants);
 	}
@@ -130,3 +185,8 @@ export class Bytecode {
 		public constants: Maybe<InternalObject>[],
 	) {}
 }
+
+type EmittedInstruction = {
+	opcode: OpCodes;
+	pos: number;
+};

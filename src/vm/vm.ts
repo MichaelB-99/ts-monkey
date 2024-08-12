@@ -1,9 +1,11 @@
 import { type Instructions, OpCodes, readUint16 } from "../code/code";
 import type { Bytecode } from "../compiler/compiler";
 import {
+	BooleanObject,
 	FALSE_OBJ,
 	IntegerObject,
 	type InternalObject,
+	NULL_OBJ,
 	TRUE_OBJ,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
@@ -27,7 +29,26 @@ export class VM {
 					this.push(this.bytecode.constants.at(constIndex));
 					break;
 				}
+				case OpCodes.OpJump: {
+					const jumpTo = readUint16(this.instructions.slice(i + 1));
+					i = jumpTo - 1;
 
+					break;
+				}
+
+				case OpCodes.OpJumpNotTruthy: {
+					const jumpTo = readUint16(this.instructions.slice(i + 1));
+					i += 2;
+					const cond = this.pop();
+					if (!this.isTruthy(cond)) {
+						i = jumpTo - 1;
+					}
+					break;
+				}
+				case OpCodes.OpNull: {
+					this.push(NULL_OBJ);
+					break;
+				}
 				case OpCodes.OpTrue:
 					this.push(TRUE_OBJ);
 					break;
@@ -160,6 +181,9 @@ export class VM {
 			case FALSE_OBJ:
 				return this.push(TRUE_OBJ);
 
+			case NULL_OBJ:
+				return this.push(TRUE_OBJ);
+
 			default:
 				return this.push(FALSE_OBJ);
 		}
@@ -170,6 +194,13 @@ export class VM {
 			throw new Error("TypeError: unsupported type for negation");
 		}
 		this.push(new IntegerObject(-val.value));
+	}
+	isTruthy(obj: Maybe<InternalObject>) {
+		if (obj instanceof BooleanObject) {
+			return obj.value;
+		}
+		if (obj === NULL_OBJ) return false;
+		return true;
 	}
 	nativeBoolToBooleanObject = (bool: boolean) => {
 		return bool ? TRUE_OBJ : FALSE_OBJ;
