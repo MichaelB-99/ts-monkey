@@ -1,8 +1,10 @@
 import { parseArgs } from "node:util";
 import { Compiler } from "../compiler/compiler";
+import { SymbolTable } from "../compiler/symbol-table";
 import { Environment } from "../eval/environment";
 import { evaluate } from "../eval/eval";
 import { Lexer } from "../lexer/lexer";
+import type { InternalObject } from "../object/object";
 import { Parser } from "../parser/parser";
 import { VM } from "../vm/vm";
 export async function repl() {
@@ -23,6 +25,9 @@ export async function repl() {
 		allowPositionals: true,
 	});
 	prompt();
+	const constants: InternalObject[] = [];
+	const globals: InternalObject[] = [];
+	const symbolTable = new SymbolTable();
 	for await (const line of console) {
 		const lexer = new Lexer(line);
 		const parser = new Parser(lexer);
@@ -33,9 +38,9 @@ export async function repl() {
 		}
 
 		if (values.compiler) {
-			const compiler = new Compiler();
+			const compiler = new Compiler(constants, symbolTable);
 			compiler.compile(program);
-			const vm = new VM(compiler.instructions, compiler.bytecode());
+			const vm = new VM(compiler.instructions, compiler.bytecode(), globals);
 			vm.run();
 			console.log(vm.lastPoppedElement()?.inspect());
 		} else {

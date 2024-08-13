@@ -74,6 +74,13 @@ describe("vm", () => {
 			{ input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
 		]);
 	});
+	it("should execute let statements/identifiers", () => {
+		runVmTests([
+			{ input: "let one =1; one;", expected: 1 },
+			{ input: "let one =1; let two = 2; one+two;", expected: 3 },
+			{ input: "let one =1; let two = one+one; one + two;", expected: 3 },
+		]);
+	});
 });
 
 const runVmTests = (

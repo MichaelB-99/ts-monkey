@@ -2,9 +2,11 @@ import {
 	BlockStatement,
 	BooleanLiteral,
 	ExpressionStatement,
+	Identifier,
 	IfExpression,
 	InfixExpression,
 	IntegerLiteral,
+	LetStatement,
 	type Node,
 	PrefixExpression,
 	Program,
@@ -12,12 +14,17 @@ import {
 import { type Instructions, OpCodes, make } from "../code/code";
 import { IntegerObject, type InternalObject } from "../object/object";
 import type { Maybe } from "../utils/types";
+import { SymbolTable } from "./symbol-table";
 
 export class Compiler {
 	public instructions: Instructions = new Uint8Array();
-	public constants: Maybe<InternalObject>[] = [];
 	public previousInstruction: Maybe<EmittedInstruction>;
 	lastInstruction: Maybe<EmittedInstruction>;
+
+	constructor(
+		private constants: Maybe<InternalObject>[] = [],
+		private symbolTable: SymbolTable = new SymbolTable(),
+	) {}
 
 	compile(node: Maybe<Node>) {
 		if (node instanceof Program) {
@@ -128,6 +135,18 @@ export class Compiler {
 				default:
 					break;
 			}
+		}
+		if (node instanceof LetStatement) {
+			this.compile(node.value);
+			const symbol = this.symbolTable.define(node.name?.value!);
+			this.emit(OpCodes.OpSetGlobal, symbol.index);
+		}
+		if (node instanceof Identifier) {
+			const symbol = this.symbolTable.resolve(node.value);
+			if (!symbol) {
+				throw new Error(`undefined variable: ${node.value}`);
+			}
+			this.emit(OpCodes.OpGetGlobal, symbol.index);
 		}
 
 		if (node instanceof IntegerLiteral) {

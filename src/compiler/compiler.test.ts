@@ -289,6 +289,44 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	describe("let statements", () => {
+		it("should compile", () => {
+			runCompilerTests([
+				{
+					input: "let one =1;let two = 2;",
+					expectedConstants: [1, 2],
+					expectedInstructions: [
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpSetGlobal, 0),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpSetGlobal, 1),
+					],
+				},
+				{
+					input: "let one =1; one;",
+					expectedConstants: [1],
+					expectedInstructions: [
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpSetGlobal, 0),
+						make(OpCodes.OpGetGlobal, 0),
+						make(OpCodes.OpPop, 0),
+					],
+				},
+				{
+					input: "let one =1;let two = one;two;",
+					expectedConstants: [1],
+					expectedInstructions: [
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpSetGlobal, 0),
+						make(OpCodes.OpGetGlobal, 0),
+						make(OpCodes.OpSetGlobal, 1),
+						make(OpCodes.OpGetGlobal, 1),
+						make(OpCodes.OpPop, 0),
+					],
+				},
+			]);
+		});
+	});
 });
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();

@@ -15,6 +15,7 @@ export class VM {
 	constructor(
 		private instructions: Instructions,
 		private bytecode: Bytecode,
+		private globals: Maybe<InternalObject>[] = [],
 	) {}
 	public stack: Maybe<InternalObject>[] = [];
 	public lastPoppedStackElement: Maybe<InternalObject>;
@@ -29,6 +30,20 @@ export class VM {
 					this.push(this.bytecode.constants.at(constIndex));
 					break;
 				}
+				case OpCodes.OpSetGlobal: {
+					const globalIndex = readUint16(this.instructions.slice(i + 1));
+					i += 2;
+					const val = this.pop();
+					this.globals[globalIndex] = val;
+					break;
+				}
+				case OpCodes.OpGetGlobal: {
+					const globalIndex = readUint16(this.instructions.slice(i + 1));
+					i += 2;
+					this.push(this.globals[globalIndex]);
+					break;
+				}
+
 				case OpCodes.OpJump: {
 					const jumpTo = readUint16(this.instructions.slice(i + 1));
 					i = jumpTo - 1;

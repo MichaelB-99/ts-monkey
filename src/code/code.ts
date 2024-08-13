@@ -20,6 +20,8 @@ export enum OpCodes {
 	OpJump,
 	OpJumpNotTruthy,
 	OpNull,
+	OpSetGlobal,
+	OpGetGlobal,
 }
 type Definition = {
 	name: string;
@@ -96,6 +98,14 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	[OpCodes.OpNull]: {
 		name: OpCodes[OpCodes.OpNull],
 		operandWidths: [],
+	},
+	[OpCodes.OpSetGlobal]: {
+		name: OpCodes[OpCodes.OpSetGlobal],
+		operandWidths: [2],
+	},
+	[OpCodes.OpGetGlobal]: {
+		name: OpCodes[OpCodes.OpGetGlobal],
+		operandWidths: [2],
 	},
 };
 export const lookupOpCode = (opcode: OpCodes) => {
