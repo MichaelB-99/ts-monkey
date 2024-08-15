@@ -6,6 +6,7 @@ import {
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
+	type StringObject,
 } from "../object/object";
 import { Parser } from "../parser/parser";
 import { VM } from "./vm";
@@ -51,6 +52,9 @@ describe("vm", () => {
 			{ input: "false==false", expected: true },
 			{ input: "true!=false", expected: true },
 			{ input: "false==true", expected: false },
+			{ input: '"hi"=="hi"', expected: true },
+			{ input: '"hi"!="a"', expected: true },
+			{ input: '"hi"=="a"', expected: false },
 			{ input: "true", expected: true },
 			{ input: "false", expected: false },
 			{ input: "!true", expected: false },
@@ -79,6 +83,18 @@ describe("vm", () => {
 			{ input: "let one =1; one;", expected: 1 },
 			{ input: "let one =1; let two = 2; one+two;", expected: 3 },
 			{ input: "let one =1; let two = one+one; one + two;", expected: 3 },
+		]);
+	});
+	it("should execute strings", () => {
+		runVmTests([
+			{
+				input: '"hello"',
+				expected: "hello",
+			},
+			{
+				input: '"hello" + " " + "world"',
+				expected: "hello world",
+			},
 		]);
 	});
 });
@@ -116,6 +132,9 @@ const testExpectedObject = (actual: InternalObject, expected: any) => {
 			testBooleanObject(actual as BooleanObject, expected);
 			break;
 
+		case "string":
+			expect((actual as StringObject).value).toBe(expected);
+			break;
 		default:
 			break;
 	}

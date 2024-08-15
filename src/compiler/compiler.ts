@@ -10,9 +10,14 @@ import {
 	type Node,
 	PrefixExpression,
 	Program,
+	StringLiteral,
 } from "../ast/ast";
 import { type Instructions, OpCodes, make } from "../code/code";
-import { IntegerObject, type InternalObject } from "../object/object";
+import {
+	IntegerObject,
+	type InternalObject,
+	StringObject,
+} from "../object/object";
 import type { Maybe } from "../utils/types";
 import { SymbolTable } from "./symbol-table";
 
@@ -152,6 +157,12 @@ export class Compiler {
 		if (node instanceof IntegerLiteral) {
 			const integer = new IntegerObject(node.value!);
 			this.emit(OpCodes.OpConstant, this.addConstant(integer));
+		}
+		if (node instanceof StringLiteral) {
+			this.emit(
+				OpCodes.OpConstant,
+				this.addConstant(new StringObject(node.value)),
+			);
 		}
 
 		return null;

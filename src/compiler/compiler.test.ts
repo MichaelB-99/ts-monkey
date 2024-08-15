@@ -1,7 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { type Instructions, OpCodes, make, stringify } from "../code/code";
 import { Lexer } from "../lexer/lexer";
-import { IntegerObject, type InternalObject } from "../object/object";
+import {
+	IntegerObject,
+	type InternalObject,
+	StringObject,
+} from "../object/object";
 import { Parser } from "../parser/parser";
 import { flattenTypedArrays } from "../utils/flatten-typed-arrays";
 import type { Maybe } from "../utils/types";
@@ -327,6 +331,28 @@ describe("compiler", () => {
 			]);
 		});
 	});
+	it("should compile strings", () => {
+		runCompilerTests([
+			{
+				input: '"hello"',
+				expectedConstants: ["hello"],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: '"hello" + "world"',
+				expectedConstants: ["hello", "world"],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpAdd),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 });
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();
@@ -334,7 +360,7 @@ const lexAndParse = (input: string) =>
 const runCompilerTests = (
 	tests: {
 		input: string;
-		expectedConstants: (number | boolean)[];
+		expectedConstants: (number | boolean | string)[];
 		expectedInstructions: Uint8Array[];
 	}[],
 ) => {
@@ -362,6 +388,9 @@ const testConstants = (actual: Maybe<InternalObject>[], expected: any[]) => {
 				testIntegerObject(actual[i]!, expConstant);
 				break;
 
+			case "string":
+				testStringObject(actual[i] as StringObject, expConstant);
+				break;
 			default:
 				break;
 		}
@@ -371,4 +400,9 @@ const testConstants = (actual: Maybe<InternalObject>[], expected: any[]) => {
 const testIntegerObject = (obj: InternalObject, expected: number) => {
 	expect(obj).toBeInstanceOf(IntegerObject);
 	expect((obj as IntegerObject).value).toBe(expected);
+};
+
+const testStringObject = (obj: StringObject, expected: string) => {
+	expect(obj).toBeInstanceOf(StringObject);
+	expect(obj.value).toBe(expected);
 };

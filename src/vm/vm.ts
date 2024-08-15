@@ -1,11 +1,18 @@
-import { type Instructions, OpCodes, readUint16 } from "../code/code";
+import {
+	type Instructions,
+	OpCodes,
+	definitionsMap,
+	readUint16,
+} from "../code/code";
 import type { Bytecode } from "../compiler/compiler";
 import {
 	BooleanObject,
+	ErrorObject,
 	FALSE_OBJ,
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
+	StringObject,
 	TRUE_OBJ,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
@@ -122,6 +129,9 @@ export class VM {
 		if (n1 instanceof IntegerObject && n2 instanceof IntegerObject) {
 			this.doIntegerBinaryOp(n1, op, n2);
 		}
+		if (n1 instanceof StringObject && n2 instanceof StringObject) {
+			this.doStringBinaryOp(n1, op, n2);
+		}
 	}
 	doIntegerBinaryOp(n1: IntegerObject, op: OpCodes, n2: IntegerObject) {
 		switch (op) {
@@ -138,6 +148,17 @@ export class VM {
 				break;
 		}
 	}
+	doStringBinaryOp(n1: StringObject, op: OpCodes, n2: StringObject) {
+		if (op !== OpCodes.OpAdd) {
+			this.push(
+				new ErrorObject(
+					// todo map opcodes to operator names e.g OpAdd -> + only applies for operators
+					`operator ${definitionsMap[op].name} cannot be used with strings`,
+				),
+			);
+		}
+		return this.push(new StringObject(n1.value + n2.value));
+	}
 	executeComparison(op: OpCodes) {
 		const right = this.pop();
 		const left = this.pop();
@@ -145,7 +166,9 @@ export class VM {
 		if (left instanceof IntegerObject && right instanceof IntegerObject) {
 			return this.executeIntegerComparison(left, op, right);
 		}
-		// TODO string comparison
+		if (left instanceof StringObject && right instanceof StringObject) {
+			return this.executeStringComparison(left, op, right);
+		}
 		switch (op) {
 			case OpCodes.OpEqual:
 				this.push(this.nativeBoolToBooleanObject(left === right));
@@ -185,6 +208,31 @@ export class VM {
 
 			default:
 				throw new Error(`unknown operator ${op}`);
+		}
+	}
+	executeStringComparison(
+		left: StringObject,
+		op: OpCodes,
+		right: StringObject,
+	) {
+		switch (op) {
+			case OpCodes.OpEqual:
+				return this.push(
+					this.nativeBoolToBooleanObject(left.value === right.value),
+				);
+
+			case OpCodes.OpNotEqual:
+				return this.push(
+					this.nativeBoolToBooleanObject(left.value !== right.value),
+				);
+
+			default:
+				return this.push(
+					new ErrorObject(
+						// todo map opcodes to operator names e.g OpAdd -> + only applies for operators
+						`operator ${definitionsMap[op].name} cannot be used with strings`,
+					),
+				);
 		}
 	}
 	executeBangOperator() {
