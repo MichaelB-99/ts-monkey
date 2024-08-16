@@ -1,4 +1,5 @@
 import {
+	ArrayLiteral,
 	BlockStatement,
 	BooleanLiteral,
 	ExpressionStatement,
@@ -152,6 +153,11 @@ export class Compiler {
 				throw new Error(`undefined variable: ${node.value}`);
 			}
 			this.emit(OpCodes.OpGetGlobal, symbol.index);
+		}
+
+		if (node instanceof ArrayLiteral) {
+			node.elements?.forEach((el) => this.compile(el));
+			this.emit(OpCodes.OpArray, node.elements?.length!);
 		}
 
 		if (node instanceof IntegerLiteral) {

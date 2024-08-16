@@ -22,6 +22,7 @@ export enum OpCodes {
 	OpNull,
 	OpSetGlobal,
 	OpGetGlobal,
+	OpArray,
 }
 type Definition = {
 	name: string;
@@ -105,6 +106,10 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpGetGlobal]: {
 		name: OpCodes[OpCodes.OpGetGlobal],
+		operandWidths: [2],
+	},
+	[OpCodes.OpArray]: {
+		name: OpCodes[OpCodes.OpArray],
 		operandWidths: [2],
 	},
 };

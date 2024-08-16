@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Compiler } from "../compiler/compiler";
 import { Lexer } from "../lexer/lexer";
 import {
+	type ArrayObject,
 	BooleanObject,
 	IntegerObject,
 	type InternalObject,
@@ -97,6 +98,26 @@ describe("vm", () => {
 			},
 		]);
 	});
+	it("should execute arrays", () => {
+		runVmTests([
+			{
+				input: "[]",
+				expected: [],
+			},
+			{
+				input: "[1,2,3]",
+				expected: [1, 2, 3],
+			},
+			{
+				input: "[1+1,2*2,3/3]",
+				expected: [2, 4, 1],
+			},
+			{
+				input: "[1+2,3*4,5+6]",
+				expected: [3, 12, 11],
+			},
+		]);
+	});
 });
 
 const runVmTests = (
@@ -122,6 +143,14 @@ const runVmTests = (
 const testExpectedObject = (actual: InternalObject, expected: any) => {
 	if (expected === null) {
 		expect(actual).toBe(NULL_OBJ);
+	}
+	if (Array.isArray(expected)) {
+		const arr = actual as ArrayObject;
+		expect(arr.elements).toHaveLength(expected.length);
+		expected.forEach((exp, i) => {
+			testExpectedObject(arr.elements[i]!, exp);
+		});
+		return;
 	}
 	switch (typeof expected) {
 		case "number":

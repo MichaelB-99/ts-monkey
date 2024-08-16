@@ -6,6 +6,7 @@ import {
 } from "../code/code";
 import type { Bytecode } from "../compiler/compiler";
 import {
+	ArrayObject,
 	BooleanObject,
 	ErrorObject,
 	FALSE_OBJ,
@@ -65,6 +66,16 @@ export class VM {
 					if (!this.isTruthy(cond)) {
 						i = jumpTo - 1;
 					}
+					break;
+				}
+				case OpCodes.OpArray: {
+					const num = readUint16(this.instructions.slice(i + 1));
+					i += 2;
+					const arr = [];
+					for (let index = 0; index < num; index++) {
+						arr.unshift(this.pop());
+					}
+					this.push(new ArrayObject(arr));
 					break;
 				}
 				case OpCodes.OpNull: {

@@ -353,6 +353,42 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile arrays", () => {
+		runCompilerTests([
+			{
+				input: "[]",
+				expectedConstants: [],
+				expectedInstructions: [make(OpCodes.OpArray, 0), make(OpCodes.OpPop)],
+			},
+			{
+				input: "[1,2]",
+				expectedConstants: [1, 2],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpArray, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "[1+2,3-4,5*6]",
+				expectedConstants: [1, 2, 3, 4, 5, 6],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpAdd),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpSub),
+					make(OpCodes.OpConstant, 4),
+					make(OpCodes.OpConstant, 5),
+					make(OpCodes.OpMult),
+					make(OpCodes.OpArray, 3),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 });
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();
