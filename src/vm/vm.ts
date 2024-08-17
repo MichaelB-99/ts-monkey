@@ -10,6 +10,7 @@ import {
 	BooleanObject,
 	ErrorObject,
 	FALSE_OBJ,
+	HashObject,
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
@@ -65,6 +66,16 @@ export class VM {
 					const cond = this.pop();
 					if (!this.isTruthy(cond)) {
 						i = jumpTo - 1;
+					}
+					break;
+				}
+				case OpCodes.OpHash: {
+					const num = readUint16(this.instructions.slice(i + 1));
+					i += 2;
+					const map = this.buildHash(num);
+					// map won't exist if we encounter error building hash, we stop and push error onto the stack instead
+					if (map) {
+						this.push(new HashObject(map));
 					}
 					break;
 				}
@@ -268,6 +279,31 @@ export class VM {
 			throw new Error("TypeError: unsupported type for negation");
 		}
 		this.push(new IntegerObject(-val.value));
+	}
+	buildHash(numOfPairs: number) {
+		const map = new Map();
+		for (let i = 0; i < numOfPairs; i++) {
+			const value = this.pop();
+			const key = this.pop();
+
+			const pair = {
+				key,
+				value,
+			};
+			if (
+				!(
+					key instanceof StringObject ||
+					key instanceof IntegerObject ||
+					key instanceof BooleanObject
+				)
+			) {
+				return this.push(
+					new ErrorObject(`cannot use ${key?.type()} as hash key`),
+				);
+			}
+			map.set(key!.value, pair);
+		}
+		return map;
 	}
 	isTruthy(obj: Maybe<InternalObject>) {
 		if (obj instanceof BooleanObject) {

@@ -23,6 +23,7 @@ export enum OpCodes {
 	OpSetGlobal,
 	OpGetGlobal,
 	OpArray,
+	OpHash,
 }
 type Definition = {
 	name: string;
@@ -110,6 +111,11 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpArray]: {
 		name: OpCodes[OpCodes.OpArray],
+		operandWidths: [2],
+	},
+	// operand is number of key value _pairs_ a hash has
+	[OpCodes.OpHash]: {
+		name: OpCodes[OpCodes.OpHash],
 		operandWidths: [2],
 	},
 };

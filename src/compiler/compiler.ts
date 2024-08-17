@@ -3,6 +3,7 @@ import {
 	BlockStatement,
 	BooleanLiteral,
 	ExpressionStatement,
+	HashLiteral,
 	Identifier,
 	IfExpression,
 	InfixExpression,
@@ -158,6 +159,15 @@ export class Compiler {
 		if (node instanceof ArrayLiteral) {
 			node.elements?.forEach((el) => this.compile(el));
 			this.emit(OpCodes.OpArray, node.elements?.length!);
+		}
+
+		if (node instanceof HashLiteral) {
+			const keys = Array.from(node.pairs!.keys());
+			keys.forEach((key) => {
+				this.compile(key);
+				this.compile(node.pairs?.get(key));
+			});
+			this.emit(OpCodes.OpHash, node.pairs!.size);
 		}
 
 		if (node instanceof IntegerLiteral) {

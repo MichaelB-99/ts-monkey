@@ -389,6 +389,45 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile hashes", () => {
+		runCompilerTests([
+			{
+				input: "{}",
+				expectedConstants: [],
+				expectedInstructions: [make(OpCodes.OpHash, 0), make(OpCodes.OpPop)],
+			},
+			{
+				input: "{1: 2, 3: 4, 5: 6}",
+				expectedConstants: [1, 2, 3, 4, 5, 6],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpConstant, 4),
+					make(OpCodes.OpConstant, 5),
+					make(OpCodes.OpHash, 3),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "{1: 2 + 3, 4: 5 * 6}",
+				expectedConstants: [1, 2, 3, 4, 5, 6],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpAdd),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpConstant, 4),
+					make(OpCodes.OpConstant, 5),
+					make(OpCodes.OpMult),
+					make(OpCodes.OpHash, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 });
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();

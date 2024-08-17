@@ -4,6 +4,8 @@ import { Lexer } from "../lexer/lexer";
 import {
 	type ArrayObject,
 	BooleanObject,
+	ErrorObject,
+	HashObject,
 	IntegerObject,
 	type InternalObject,
 	NULL_OBJ,
@@ -118,6 +120,39 @@ describe("vm", () => {
 			},
 		]);
 	});
+	describe("hashes", () => {
+		it("should execute hashes", () => {
+			runVmTests([
+				{
+					input: "{}",
+					expected: new Map(),
+				},
+				{
+					input: "{1:2}",
+					expected: new Map([[1, 2]]),
+				},
+				{
+					input: "{1+1: 2*2, 3+3: 4*4}",
+					expected: new Map([
+						[2, 4],
+						[6, 16],
+					]),
+				},
+			]);
+		});
+		it("should handle hash key errors", () => {
+			runVmTests([
+				{
+					input: "{[1]:2}",
+					expected: new ErrorObject("cannot use ARRAY as hash key"),
+				},
+				{
+					input: "{[1]:2, 5:10}",
+					expected: new ErrorObject("cannot use ARRAY as hash key"),
+				},
+			]);
+		});
+	});
 });
 
 const runVmTests = (
@@ -144,6 +179,10 @@ const testExpectedObject = (actual: InternalObject, expected: any) => {
 	if (expected === null) {
 		expect(actual).toBe(NULL_OBJ);
 	}
+	if (expected instanceof ErrorObject) {
+		const error = actual as ErrorObject;
+		expect(error.msg).toBe(expected.msg);
+	}
 	if (Array.isArray(expected)) {
 		const arr = actual as ArrayObject;
 		expect(arr.elements).toHaveLength(expected.length);
@@ -151,6 +190,18 @@ const testExpectedObject = (actual: InternalObject, expected: any) => {
 			testExpectedObject(arr.elements[i]!, exp);
 		});
 		return;
+	}
+	if (expected instanceof Map) {
+		const hash = actual as HashObject;
+		expect(hash).toBeInstanceOf(HashObject);
+		expect(hash.pairs.size).toBe(expected.size);
+		for (const [expKey, expValue] of expected) {
+			const val = hash.pairs.get(expKey)!.value as
+				| StringObject
+				| IntegerObject
+				| BooleanObject;
+			expect(val.value).toBe(expValue);
+		}
 	}
 	switch (typeof expected) {
 		case "number":
