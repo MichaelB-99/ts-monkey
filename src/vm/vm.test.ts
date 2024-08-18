@@ -153,6 +153,37 @@ describe("vm", () => {
 			]);
 		});
 	});
+	it("should execute index expressions", () => {
+		runVmTests([
+			{
+				input: "[1,2,3][0]",
+				expected: 1,
+			},
+			{ input: '{"hello":"world"}["hello"]', expected: "world" },
+			{ input: '{"hello":"world"}["h" + "ello"]', expected: "world" },
+			{ input: "{2:4}[1+1]", expected: 4 },
+			{ input: "{2:4}[1]", expected: null },
+			{ input: '{"hello":"world"}["hi"]', expected: null },
+			{ input: '"hi"[0]', expected: "h" },
+			{ input: 'let a = "hi"; a[0]', expected: "h" },
+			{ input: '"hi"[2]', expected: null },
+			{ input: '"hi"[0+1]', expected: "i" },
+			{ input: "[[1]][0]", expected: [1] },
+			{ input: "[][0]", expected: null },
+		]);
+	});
+	it("should handle index errors", () => {
+		runVmTests([
+			{
+				input: "true[0]",
+				expected: new ErrorObject("BOOLEAN is not indexable"),
+			},
+			{
+				input: "1[0]",
+				expected: new ErrorObject("INTEGER is not indexable"),
+			},
+		]);
+	});
 });
 
 const runVmTests = (

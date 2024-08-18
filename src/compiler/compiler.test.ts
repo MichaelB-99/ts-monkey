@@ -428,6 +428,23 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile indexes", () => {
+		runCompilerTests([
+			{
+				input: "[1,2,3][0]",
+				expectedConstants: [1, 2, 3, 0],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpArray, 3),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpIndex),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 });
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();

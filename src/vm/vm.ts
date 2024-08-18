@@ -89,6 +89,20 @@ export class VM {
 					this.push(new ArrayObject(arr));
 					break;
 				}
+				case OpCodes.OpIndex: {
+					const idx = this.pop();
+					const obj = this.pop();
+					if (obj instanceof ArrayObject) {
+						this.indexArray(obj, idx!);
+					} else if (obj instanceof HashObject) {
+						this.indexHash(obj, idx!);
+					} else if (obj instanceof StringObject) {
+						this.indexString(obj, idx);
+					} else {
+						this.push(new ErrorObject(`${obj?.type()} is not indexable`));
+					}
+					break;
+				}
 				case OpCodes.OpNull: {
 					this.push(NULL_OBJ);
 					break;
@@ -127,6 +141,18 @@ export class VM {
 					break;
 			}
 		}
+	}
+	indexString(indexee: StringObject, idx: Maybe<InternalObject>) {
+		if (!(idx instanceof IntegerObject)) {
+			return this.push(
+				new ErrorObject(`${idx?.type()} cannot be used to index string`),
+			);
+		}
+		const val = indexee.value.at(idx.value);
+		if (!val) {
+			return this.push(NULL_OBJ);
+		}
+		return this.push(new StringObject(val));
 	}
 
 	lastPoppedElement() {
@@ -305,12 +331,42 @@ export class VM {
 		}
 		return map;
 	}
+
 	isTruthy(obj: Maybe<InternalObject>) {
 		if (obj instanceof BooleanObject) {
 			return obj.value;
 		}
 		if (obj === NULL_OBJ) return false;
 		return true;
+	}
+	indexArray(arr: ArrayObject, idx: Maybe<InternalObject>) {
+		if (!(idx instanceof IntegerObject)) {
+			return this.push(
+				new ErrorObject(`${idx?.type()} cannot be used to index arrays`),
+			);
+		}
+		if (idx.value < 0 || idx.value > arr.elements.length - 1) {
+			this.push(NULL_OBJ);
+		} else {
+			this.push(arr.elements.at(idx.value));
+		}
+	}
+	indexHash(hash: HashObject, idx: Maybe<InternalObject>) {
+		if (
+			!(
+				idx instanceof IntegerObject ||
+				idx instanceof BooleanObject ||
+				idx instanceof StringObject
+			)
+		) {
+			return new ErrorObject(`${idx?.type()} cannot be used to index arrays`);
+		}
+		const pair = hash.pairs.get(idx.value);
+		if (!pair) {
+			this.push(NULL_OBJ);
+		} else {
+			this.push(pair.value);
+		}
 	}
 	nativeBoolToBooleanObject = (bool: boolean) => {
 		return bool ? TRUE_OBJ : FALSE_OBJ;

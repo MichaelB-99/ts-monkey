@@ -24,6 +24,7 @@ export enum OpCodes {
 	OpGetGlobal,
 	OpArray,
 	OpHash,
+	OpIndex,
 }
 type Definition = {
 	name: string;
@@ -117,6 +118,10 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	[OpCodes.OpHash]: {
 		name: OpCodes[OpCodes.OpHash],
 		operandWidths: [2],
+	},
+	[OpCodes.OpIndex]: {
+		name: OpCodes[OpCodes.OpIndex],
+		operandWidths: [],
 	},
 };
 export const lookupOpCode = (opcode: OpCodes) => {

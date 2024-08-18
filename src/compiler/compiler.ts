@@ -6,6 +6,7 @@ import {
 	HashLiteral,
 	Identifier,
 	IfExpression,
+	IndexExpression,
 	InfixExpression,
 	IntegerLiteral,
 	LetStatement,
@@ -179,6 +180,12 @@ export class Compiler {
 				OpCodes.OpConstant,
 				this.addConstant(new StringObject(node.value)),
 			);
+		}
+
+		if (node instanceof IndexExpression) {
+			this.compile(node.left);
+			this.compile(node.index);
+			this.emit(OpCodes.OpIndex);
 		}
 
 		return null;
