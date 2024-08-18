@@ -142,6 +142,16 @@ describe("compiler", () => {
 				],
 			},
 			{
+				input: "true!=false",
+				expectedConstants: [],
+				expectedInstructions: [
+					make(OpCodes.OpTrue),
+					make(OpCodes.OpFalse),
+					make(OpCodes.OpNotEqual),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
 				input: "1==1",
 				expectedConstants: [1, 1],
 				expectedInstructions: [
@@ -177,6 +187,26 @@ describe("compiler", () => {
 					make(OpCodes.OpTrue),
 					make(OpCodes.OpBang),
 					make(OpCodes.OpBang),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "true||false",
+				expectedConstants: [],
+				expectedInstructions: [
+					make(OpCodes.OpTrue),
+					make(OpCodes.OpFalse),
+					make(OpCodes.OpOr),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "false && true",
+				expectedConstants: [],
+				expectedInstructions: [
+					make(OpCodes.OpFalse),
+					make(OpCodes.OpTrue),
+					make(OpCodes.OpAnd),
 					make(OpCodes.OpPop),
 				],
 			},

@@ -96,6 +96,13 @@ export class Compiler {
 				case ">=":
 					this.emit(OpCodes.OpGreaterThanOrEqual);
 					break;
+
+				case "||":
+					this.emit(OpCodes.OpOr);
+					break;
+				case "&&":
+					this.emit(OpCodes.OpAnd);
+					break;
 				default:
 					break;
 			}

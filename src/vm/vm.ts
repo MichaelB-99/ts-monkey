@@ -123,6 +123,8 @@ export class VM {
 				case OpCodes.OpNotEqual:
 				case OpCodes.OpGreaterThan:
 				case OpCodes.OpGreaterThanOrEqual:
+				case OpCodes.OpOr:
+				case OpCodes.OpAnd:
 				case OpCodes.OpEqual:
 					this.executeComparison(op);
 					break;
@@ -210,12 +212,32 @@ export class VM {
 	executeComparison(op: OpCodes) {
 		const right = this.pop();
 		const left = this.pop();
-
+		if (left?.type() !== right?.type()) {
+			return this.push(
+				new ErrorObject(
+					`type mismatch: ${left?.type()} ${definitionsMap[op].name} ${right?.type()}`,
+				),
+			);
+		}
 		if (left instanceof IntegerObject && right instanceof IntegerObject) {
 			return this.executeIntegerComparison(left, op, right);
 		}
 		if (left instanceof StringObject && right instanceof StringObject) {
 			return this.executeStringComparison(left, op, right);
+		}
+		if (left instanceof BooleanObject && op === OpCodes.OpAnd) {
+			return this.push(
+				this.nativeBoolToBooleanObject(
+					left.value && (right as BooleanObject).value,
+				),
+			);
+		}
+		if (left instanceof BooleanObject && op === OpCodes.OpOr) {
+			return this.push(
+				this.nativeBoolToBooleanObject(
+					left.value || (right as BooleanObject).value,
+				),
+			);
 		}
 		switch (op) {
 			case OpCodes.OpEqual:
@@ -224,7 +246,6 @@ export class VM {
 			case OpCodes.OpNotEqual:
 				this.push(this.nativeBoolToBooleanObject(left !== right));
 				break;
-
 			default:
 				throw new Error(
 					`unknown operator ${op}, ${left?.type()}, ${right?.type()}`,

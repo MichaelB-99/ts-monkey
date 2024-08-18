@@ -11,6 +11,8 @@ export enum OpCodes {
 	OpDiv,
 	OpTrue,
 	OpFalse,
+	OpOr,
+	OpAnd,
 	OpEqual,
 	OpNotEqual,
 	OpGreaterThan,
@@ -121,6 +123,14 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpIndex]: {
 		name: OpCodes[OpCodes.OpIndex],
+		operandWidths: [],
+	},
+	[OpCodes.OpOr]: {
+		name: OpCodes[OpCodes.OpPop],
+		operandWidths: [],
+	},
+	[OpCodes.OpAnd]: {
+		name: OpCodes[OpCodes.OpAdd],
 		operandWidths: [],
 	},
 };

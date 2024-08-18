@@ -41,6 +41,13 @@ describe("vm", () => {
 
 	it("should execute boolean expressions", () => {
 		runVmTests([
+			{ input: "true||false", expected: true },
+			{ input: "false||true", expected: true },
+			{ input: "false||false", expected: false },
+			{ input: "false && true", expected: false },
+			{ input: "true && false", expected: false },
+			{ input: "true && true", expected: true },
+			{ input: "[true][0] && [false,true][1]", expected: true },
 			{ input: "2>1", expected: true },
 			{ input: "1<2", expected: true },
 			{ input: "1<=2", expected: true },
@@ -67,6 +74,20 @@ describe("vm", () => {
 			{ input: "!!5", expected: true },
 			{ input: "!(if(false){100})", expected: true },
 			{ input: "if(if(false){10}){10} else {20}", expected: 20 },
+		]);
+	});
+	it("should handle operator errors", () => {
+		runVmTests([
+			{
+				input: "[]==true",
+				expected: new ErrorObject("type mismatch: ARRAY OpEqual BOOLEAN"),
+			},
+			{
+				input: `"hi" > "a"`,
+				expected: new ErrorObject(
+					"operator OpGreaterThan cannot be used with strings",
+				),
+			},
 		]);
 	});
 	it("should execute if expressions", () => {
