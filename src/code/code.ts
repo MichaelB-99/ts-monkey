@@ -30,6 +30,7 @@ export enum OpCodes {
 }
 type Definition = {
 	name: string;
+	char?: string;
 	// num of bytes each operand takes up so [1,2] would be a 1 byte (8 bit) operand followed by a 2 byte (16 bit) operand e.g [255,65535]
 	operandWidths: number[];
 };
@@ -41,6 +42,7 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpAdd]: {
 		name: OpCodes[OpCodes.OpAdd],
+		char: "+",
 		operandWidths: [],
 	},
 	[OpCodes.OpPop]: {
@@ -49,14 +51,18 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpSub]: {
 		name: OpCodes[OpCodes.OpSub],
+		char: "-",
 		operandWidths: [],
 	},
 	[OpCodes.OpMult]: {
 		name: OpCodes[OpCodes.OpMult],
+		char: "*",
 		operandWidths: [],
 	},
 	[OpCodes.OpDiv]: {
 		name: OpCodes[OpCodes.OpDiv],
+		char: "/",
+
 		operandWidths: [],
 	},
 
@@ -70,26 +76,34 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpEqual]: {
 		name: OpCodes[OpCodes.OpEqual],
+		char: "==",
+
 		operandWidths: [],
 	},
 	[OpCodes.OpNotEqual]: {
 		name: OpCodes[OpCodes.OpNotEqual],
+		char: "!=",
+
 		operandWidths: [],
 	},
 	[OpCodes.OpGreaterThan]: {
 		name: OpCodes[OpCodes.OpGreaterThan],
+		char: ">",
 		operandWidths: [],
 	},
 	[OpCodes.OpGreaterThanOrEqual]: {
 		name: OpCodes[OpCodes.OpGreaterThanOrEqual],
+		char: ">=",
 		operandWidths: [],
 	},
 	[OpCodes.OpMinus]: {
 		name: OpCodes[OpCodes.OpMinus],
+		char: "-",
 		operandWidths: [],
 	},
 	[OpCodes.OpBang]: {
 		name: OpCodes[OpCodes.OpBang],
+		char: "!",
 		operandWidths: [],
 	},
 	[OpCodes.OpJump]: {
@@ -127,10 +141,13 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpOr]: {
 		name: OpCodes[OpCodes.OpPop],
+		char: "||",
+
 		operandWidths: [],
 	},
 	[OpCodes.OpAnd]: {
 		name: OpCodes[OpCodes.OpAdd],
+		char: "&&",
 		operandWidths: [],
 	},
 };

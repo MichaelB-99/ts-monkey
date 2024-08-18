@@ -80,13 +80,11 @@ describe("vm", () => {
 		runVmTests([
 			{
 				input: "[]==true",
-				expected: new ErrorObject("type mismatch: ARRAY OpEqual BOOLEAN"),
+				expected: new ErrorObject("type mismatch: ARRAY == BOOLEAN"),
 			},
 			{
 				input: `"hi" > "a"`,
-				expected: new ErrorObject(
-					"operator OpGreaterThan cannot be used with strings",
-				),
+				expected: new ErrorObject("operator > cannot be used with strings"),
 			},
 		]);
 	});

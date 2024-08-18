@@ -200,10 +200,10 @@ export class VM {
 	}
 	doStringBinaryOp(n1: StringObject, op: OpCodes, n2: StringObject) {
 		if (op !== OpCodes.OpAdd) {
-			this.push(
+			return this.push(
 				new ErrorObject(
 					// todo map opcodes to operator names e.g OpAdd -> + only applies for operators
-					`operator ${definitionsMap[op].name} cannot be used with strings`,
+					`operator ${definitionsMap[op].char} cannot be used with strings`,
 				),
 			);
 		}
@@ -215,7 +215,7 @@ export class VM {
 		if (left?.type() !== right?.type()) {
 			return this.push(
 				new ErrorObject(
-					`type mismatch: ${left?.type()} ${definitionsMap[op].name} ${right?.type()}`,
+					`type mismatch: ${left?.type()} ${definitionsMap[op].char} ${right?.type()}`,
 				),
 			);
 		}
@@ -299,7 +299,7 @@ export class VM {
 				return this.push(
 					new ErrorObject(
 						// todo map opcodes to operator names e.g OpAdd -> + only applies for operators
-						`operator ${definitionsMap[op].name} cannot be used with strings`,
+						`operator ${definitionsMap[op].char} cannot be used with strings`,
 					),
 				);
 		}
