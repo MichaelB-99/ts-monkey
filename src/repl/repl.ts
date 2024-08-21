@@ -40,7 +40,7 @@ export async function repl() {
 		if (values.compiler) {
 			const compiler = new Compiler(constants, symbolTable);
 			compiler.compile(program);
-			const vm = new VM(compiler.instructions, compiler.bytecode(), globals);
+			const vm = new VM(compiler.bytecode(), globals);
 			vm.run();
 			console.log(vm.lastPoppedElement()?.inspect());
 		} else {

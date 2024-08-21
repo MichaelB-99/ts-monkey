@@ -203,6 +203,58 @@ describe("vm", () => {
 			},
 		]);
 	});
+	describe("functions", () => {
+		it("should execute", () => {
+			runVmTests([
+				{
+					input: "let fivePlusTen = fn(){5+10}; fivePlusTen()",
+					expected: 15,
+				},
+				{
+					input: "let fivePlusTen = fn()=> {5+10}; fivePlusTen()",
+					expected: 15,
+				},
+				{
+					input: "fn(){return 200 - fn(){return 1}()}()",
+					expected: 199,
+				},
+				{
+					input: "fn(){return 200 - fn()=>{return 1}()}()",
+					expected: 199,
+				},
+				{
+					input: "fn(){return 200 - fn()=>{1}()}()",
+					expected: 199,
+				},
+
+				{
+					input: "fn(){return 100; 99;}()",
+					expected: 100,
+				},
+				{
+					input: "let earlyExit = fn(){return 99;100}; earlyExit()",
+					expected: 99,
+				},
+				{
+					input: "let returnsNothing = fn(){}; returnsNothing()",
+					expected: null,
+				},
+				{
+					input: "fn(){}()",
+					expected: null,
+				},
+			]);
+		});
+		it("should be first class", () => {
+			runVmTests([
+				{
+					input:
+						"let returnsOne = fn(){1}; let returnFn = fn(){returnsOne}; returnFn()()",
+					expected: 1,
+				},
+			]);
+		});
+	});
 });
 
 const runVmTests = (
@@ -217,7 +269,7 @@ const runVmTests = (
 		const compiler = new Compiler();
 		compiler.compile(program);
 		const bytecode = compiler.bytecode();
-		const vm = new VM(compiler.instructions, bytecode);
+		const vm = new VM(bytecode);
 		vm.run();
 		const stackElement = vm.lastPoppedElement();
 		testExpectedObject(stackElement!, expected);

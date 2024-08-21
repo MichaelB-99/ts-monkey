@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { type Instructions, OpCodes, make, stringify } from "../code/code";
 import { Lexer } from "../lexer/lexer";
 import {
+	CompiledFunctionObject,
 	IntegerObject,
 	type InternalObject,
 	StringObject,
@@ -475,6 +476,115 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile functions", () => {
+		runCompilerTests([
+			{
+				input: "fn(){return 5+5}",
+				expectedConstants: [
+					5,
+					5,
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "fn(){5+5}",
+				expectedConstants: [
+					5,
+					5,
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+
+			{
+				input: "fn(){1;2;}",
+				expectedConstants: [
+					1,
+					2,
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpPop),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
+	it("should compile call expressions", () => {
+		runCompilerTests([
+			{
+				input: "fn(){24}()",
+				expectedConstants: [
+					24,
+					[make(OpCodes.OpConstant, 0), make(OpCodes.OpReturnValue)],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpCall),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "let noArg = fn(){24}; noArg()",
+				expectedConstants: [
+					24,
+					[make(OpCodes.OpConstant, 0), make(OpCodes.OpReturnValue)],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpSetGlobal, 0),
+					make(OpCodes.OpGetGlobal, 0),
+					make(OpCodes.OpCall),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
+
+	it("should be the correct compiler scope", () => {
+		const compiler = new Compiler();
+		expect(compiler.scopeIndex).toBe(0);
+		compiler.emit(OpCodes.OpMult);
+		compiler.enterScope();
+		expect(compiler.scopeIndex).toBe(1);
+		compiler.emit(OpCodes.OpSub);
+		expect(compiler.scopes[compiler.scopeIndex].instructions).toHaveLength(1);
+		expect(compiler.scopes[compiler.scopeIndex].lastInstruction?.opcode).toBe(
+			OpCodes.OpSub,
+		);
+		compiler.leaveScope();
+		expect(compiler.scopeIndex).toBe(0);
+		compiler.emit(OpCodes.OpAdd);
+		expect(compiler.scopes[compiler.scopeIndex].instructions).toHaveLength(2);
+		expect(compiler.scopes[compiler.scopeIndex].lastInstruction?.opcode).toBe(
+			OpCodes.OpAdd,
+		);
+		expect(
+			compiler.scopes[compiler.scopeIndex].previousInstruction?.opcode,
+		).toBe(OpCodes.OpMult);
+	});
 });
 const lexAndParse = (input: string) =>
 	new Parser(new Lexer(input)).parseProgram();
@@ -482,7 +592,7 @@ const lexAndParse = (input: string) =>
 const runCompilerTests = (
 	tests: {
 		input: string;
-		expectedConstants: (number | boolean | string)[];
+		expectedConstants: (number | boolean | string | Instructions[])[];
 		expectedInstructions: Uint8Array[];
 	}[],
 ) => {
@@ -505,6 +615,11 @@ const testInstructions = (actual: Instructions, expected: Uint8Array[]) => {
 const testConstants = (actual: Maybe<InternalObject>[], expected: any[]) => {
 	expect(actual.length).toBe(expected.length);
 	expected.forEach((expConstant, i) => {
+		if (Array.isArray(expConstant)) {
+			const fn = actual[i] as CompiledFunctionObject;
+			expect(fn).toBeInstanceOf(CompiledFunctionObject);
+			testInstructions(fn.instructions, expConstant);
+		}
 		switch (typeof expConstant) {
 			case "number":
 				testIntegerObject(actual[i]!, expConstant);

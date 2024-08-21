@@ -8,6 +8,7 @@ import type { Bytecode } from "../compiler/compiler";
 import {
 	ArrayObject,
 	BooleanObject,
+	CompiledFunctionObject,
 	ErrorObject,
 	FALSE_OBJ,
 	HashObject,
@@ -18,60 +19,72 @@ import {
 	TRUE_OBJ,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
+import { Frame } from "./frame";
 
 const STACK_SIZE = 2048;
 export class VM {
 	constructor(
-		private instructions: Instructions,
 		private bytecode: Bytecode,
 		private globals: Maybe<InternalObject>[] = [],
-	) {}
+	) {
+		const mainFn = new CompiledFunctionObject(this.bytecode.instructions);
+		const mainFrame = new Frame(mainFn);
+		this.frames[0] = mainFrame;
+	}
 	public stack: Maybe<InternalObject>[] = [];
 	public lastPoppedStackElement: Maybe<InternalObject>;
 	public stackPointer = 0;
+	public frames: Frame[] = [];
+	public framesIndex = 1;
 	run() {
-		for (let i = 0; i < this.instructions.length; i++) {
-			const op: OpCodes = this.instructions[i];
+		let ip: number;
+		let instructions: Instructions;
+		let op: OpCodes;
+		while (this.currentFrame.ip < this.currentFrame.instructions.length) {
+			this.currentFrame.ip++;
+			instructions = this.currentFrame.instructions;
+			ip = this.currentFrame.ip;
+			op = this.currentFrame.instructions[ip];
 			switch (op) {
 				case OpCodes.OpConstant: {
-					const constIndex = readUint16(this.instructions.slice(i + 1));
-					i += 2;
+					const constIndex = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip += 2;
 					this.push(this.bytecode.constants.at(constIndex));
 					break;
 				}
 				case OpCodes.OpSetGlobal: {
-					const globalIndex = readUint16(this.instructions.slice(i + 1));
-					i += 2;
+					const globalIndex = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip += 2;
 					const val = this.pop();
 					this.globals[globalIndex] = val;
 					break;
 				}
 				case OpCodes.OpGetGlobal: {
-					const globalIndex = readUint16(this.instructions.slice(i + 1));
-					i += 2;
+					const globalIndex = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip += 2;
 					this.push(this.globals[globalIndex]);
 					break;
 				}
 
 				case OpCodes.OpJump: {
-					const jumpTo = readUint16(this.instructions.slice(i + 1));
-					i = jumpTo - 1;
+					const jumpTo = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip = jumpTo - 1;
 
 					break;
 				}
 
 				case OpCodes.OpJumpNotTruthy: {
-					const jumpTo = readUint16(this.instructions.slice(i + 1));
-					i += 2;
+					const jumpTo = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip += 2;
 					const cond = this.pop();
 					if (!this.isTruthy(cond)) {
-						i = jumpTo - 1;
+						this.currentFrame.ip = jumpTo - 1;
 					}
 					break;
 				}
 				case OpCodes.OpHash: {
-					const num = readUint16(this.instructions.slice(i + 1));
-					i += 2;
+					const num = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip += 2;
 					const map = this.buildHash(num);
 					// map won't exist if we encounter error building hash, we stop and push error onto the stack instead
 					if (map) {
@@ -80,8 +93,8 @@ export class VM {
 					break;
 				}
 				case OpCodes.OpArray: {
-					const num = readUint16(this.instructions.slice(i + 1));
-					i += 2;
+					const num = readUint16(instructions.slice(ip + 1));
+					this.currentFrame.ip += 2;
 					const arr = [];
 					for (let index = 0; index < num; index++) {
 						arr.unshift(this.pop());
@@ -103,6 +116,30 @@ export class VM {
 					}
 					break;
 				}
+				case OpCodes.OpCall: {
+					const fn = this.stack[this.stackPointer - 1];
+					if (!(fn instanceof CompiledFunctionObject)) {
+						this.push(
+							new ErrorObject(`this is not a function. got: ${fn?.type()}`),
+						);
+						break;
+					}
+
+					this.pushFrame(new Frame(fn));
+					break;
+				}
+				case OpCodes.OpReturnValue: {
+					const returnVal = this.pop();
+					this.popFrame();
+					this.pop();
+					this.push(returnVal);
+					break;
+				}
+				case OpCodes.OpReturn:
+					this.popFrame();
+					this.pop();
+					this.push(NULL_OBJ);
+					break;
 				case OpCodes.OpNull: {
 					this.push(NULL_OBJ);
 					break;
@@ -388,6 +425,17 @@ export class VM {
 		} else {
 			this.push(pair.value);
 		}
+	}
+	get currentFrame() {
+		return this.frames[this.framesIndex - 1];
+	}
+	pushFrame(frame: Frame) {
+		this.frames[this.framesIndex] = frame;
+		this.framesIndex++;
+	}
+	popFrame() {
+		this.framesIndex--;
+		return this.frames[this.framesIndex];
 	}
 	nativeBoolToBooleanObject = (bool: boolean) => {
 		return bool ? TRUE_OBJ : FALSE_OBJ;

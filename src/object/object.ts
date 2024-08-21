@@ -1,4 +1,5 @@
 import { BlockStatement, type Expression, type Identifier } from "../ast/ast";
+import type { Instructions } from "../code/code";
 import type { Environment } from "../eval/environment";
 import type { Maybe } from "../utils/types";
 
@@ -46,6 +47,7 @@ export enum ObjectType {
 	BUILT_IN_OBJ = "BUILTIN",
 	ARRAY_OBJ = "ARRAY",
 	HASH_OBJ = "HASH",
+	COMPILED_FUNCTION_OBJ = "COMPILED_FN",
 }
 
 export class ReturnValueObject implements InternalObject {
@@ -138,6 +140,15 @@ export class HashObject implements InternalObject {
 		return `{${Array.from(this.pairs.values())
 			.map(({ key, value }) => `${key.inspect()}:${value?.inspect()}`)
 			.join(", ")}}`;
+	}
+}
+export class CompiledFunctionObject implements InternalObject {
+	constructor(public readonly instructions: Instructions) {}
+	type(): ObjectType {
+		return ObjectType.COMPILED_FUNCTION_OBJ;
+	}
+	inspect(): string {
+		return "CompiledFunction";
 	}
 }
 export const TRUE_OBJ = new BooleanObject(true);

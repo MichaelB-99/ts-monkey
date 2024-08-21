@@ -39,7 +39,7 @@ async function runFiles() {
 				if (Bun.argv.includes("-c")) {
 					const compiler = new Compiler();
 					compiler.compile(program);
-					const vm = new VM(compiler.instructions, compiler.bytecode());
+					const vm = new VM(compiler.bytecode());
 					vm.run();
 					console.log(vm.lastPoppedElement()?.inspect());
 				} else {

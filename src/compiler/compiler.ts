@@ -2,7 +2,9 @@ import {
 	ArrayLiteral,
 	BlockStatement,
 	BooleanLiteral,
+	CallExpression,
 	ExpressionStatement,
+	FunctionLiteral,
 	HashLiteral,
 	Identifier,
 	IfExpression,
@@ -13,10 +15,12 @@ import {
 	type Node,
 	PrefixExpression,
 	Program,
+	ReturnStatement,
 	StringLiteral,
 } from "../ast/ast";
 import { type Instructions, OpCodes, make } from "../code/code";
 import {
+	CompiledFunctionObject,
 	IntegerObject,
 	type InternalObject,
 	StringObject,
@@ -25,10 +29,14 @@ import type { Maybe } from "../utils/types";
 import { SymbolTable } from "./symbol-table";
 
 export class Compiler {
-	public instructions: Instructions = new Uint8Array();
-	public previousInstruction: Maybe<EmittedInstruction>;
-	lastInstruction: Maybe<EmittedInstruction>;
-
+	public scopeIndex = 0;
+	public scopes: CompilationScope[] = [
+		{
+			instructions: new Uint8Array(),
+			lastInstruction: undefined,
+			previousInstruction: undefined,
+		},
+	];
 	constructor(
 		private constants: Maybe<InternalObject>[] = [],
 		private symbolTable: SymbolTable = new SymbolTable(),
@@ -112,24 +120,24 @@ export class Compiler {
 			const jumpNotTruthyPos = this.emit(OpCodes.OpJumpNotTruthy, 9999);
 			this.compile(node.consequence);
 
-			if (this.lastInstruction?.opcode === OpCodes.OpPop) {
+			if (this.lastInstructionIs(OpCodes.OpPop)) {
 				this.removeLastPop();
 			}
 
 			const jumpPos = this.emit(OpCodes.OpJump, 9999);
-			const afterConsequencePos = this.instructions.length;
+			const afterConsequencePos = this.currentInstructions.length;
 			this.changeOperand(jumpNotTruthyPos, afterConsequencePos);
 
 			if (!node.alternative) {
 				this.emit(OpCodes.OpNull);
 			} else {
 				this.compile(node.alternative);
-				if (this.lastInstruction?.opcode === OpCodes.OpPop) {
+				if (this.lastInstructionIs(OpCodes.OpPop)) {
 					this.removeLastPop();
 				}
 			}
 
-			const afterAlternativePos = this.instructions.length;
+			const afterAlternativePos = this.currentInstructions.length;
 			this.changeOperand(jumpPos, afterAlternativePos);
 		}
 		if (node instanceof BlockStatement) {
@@ -188,7 +196,29 @@ export class Compiler {
 				this.addConstant(new StringObject(node.value)),
 			);
 		}
+		if (node instanceof FunctionLiteral) {
+			this.enterScope();
+			this.compile(node.body);
+			if (this.lastInstructionIs(OpCodes.OpPop)) {
+				this.removeLastPop();
+				this.emit(OpCodes.OpReturnValue);
+			}
+			if (!this.lastInstructionIs(OpCodes.OpReturnValue)) {
+				this.emit(OpCodes.OpReturn);
+			}
 
+			const instructions = this.leaveScope();
+			const fn = new CompiledFunctionObject(instructions);
+			this.emit(OpCodes.OpConstant, this.addConstant(fn));
+		}
+		if (node instanceof CallExpression) {
+			this.compile(node.func);
+			this.emit(OpCodes.OpCall);
+		}
+		if (node instanceof ReturnStatement) {
+			this.compile(node.value);
+			this.emit(OpCodes.OpReturnValue);
+		}
 		if (node instanceof IndexExpression) {
 			this.compile(node.left);
 			this.compile(node.index);
@@ -208,34 +238,63 @@ export class Compiler {
 		return pos;
 	}
 	setLastInstruction(op: OpCodes, pos: number) {
-		const prev = this.lastInstruction;
-		this.lastInstruction = { opcode: op, pos };
-		this.previousInstruction = prev;
+		const prev = this.scopes[this.scopeIndex].lastInstruction;
+		this.scopes[this.scopeIndex].lastInstruction = { opcode: op, pos };
+		this.scopes[this.scopeIndex].previousInstruction = prev;
 	}
 	removeLastPop() {
-		this.instructions = this.instructions.slice(0, this.lastInstruction?.pos);
-		this.lastInstruction = this.previousInstruction;
-	}
-	replaceInstruction(pos: number, newInstruction: Uint8Array) {
-		for (let i = 0; i < newInstruction.length; i++) {
-			this.instructions[pos + i] = newInstruction[i];
-		}
-	}
-	changeOperand(opPos: number, operand: number) {
-		const newInstruction = make(this.instructions[opPos], operand);
-		this.replaceInstruction(opPos, newInstruction);
-	}
-	addInstruction(ins: Uint8Array) {
-		const pos = this.instructions.length;
-		const newArr = new Uint8Array(this.instructions.length + ins.length);
-		newArr.set(this.instructions);
-		newArr.set(ins, this.instructions.length);
-		this.instructions = newArr;
-		return pos;
+		const currScope = this.scopes[this.scopeIndex];
+		currScope.instructions = this.currentInstructions.slice(
+			0,
+			currScope.lastInstruction?.pos,
+		);
+		currScope.lastInstruction = currScope.previousInstruction;
 	}
 
+	replaceInstruction(pos: number, newInstruction: Uint8Array) {
+		for (let i = 0; i < newInstruction.length; i++) {
+			this.currentInstructions[pos + i] = newInstruction[i];
+		}
+	}
+
+	changeOperand(opPos: number, operand: number) {
+		const newInstruction = make(
+			this.scopes[this.scopeIndex].instructions[opPos],
+			operand,
+		);
+		this.replaceInstruction(opPos, newInstruction);
+	}
+	enterScope() {
+		const scope: CompilationScope = {
+			instructions: new Uint8Array(),
+			lastInstruction: undefined,
+			previousInstruction: undefined,
+		};
+		this.scopes.push(scope);
+		this.scopeIndex++;
+	}
+	leaveScope() {
+		const instructions = this.currentInstructions;
+		this.scopes.pop();
+		this.scopeIndex--;
+		return instructions;
+	}
+	addInstruction(ins: Uint8Array) {
+		const pos = this.currentInstructions.length;
+		const newArr = new Uint8Array(this.currentInstructions.length + ins.length);
+		newArr.set(this.currentInstructions);
+		newArr.set(ins, this.currentInstructions.length);
+		this.scopes[this.scopeIndex].instructions = newArr;
+		return pos;
+	}
+	lastInstructionIs(op: OpCodes) {
+		return this.scopes[this.scopeIndex].lastInstruction?.opcode === op;
+	}
 	bytecode() {
-		return new Bytecode(this.instructions, this.constants);
+		return new Bytecode(this.currentInstructions, this.constants);
+	}
+	get currentInstructions() {
+		return this.scopes[this.scopeIndex].instructions;
 	}
 }
 
@@ -249,4 +308,10 @@ export class Bytecode {
 type EmittedInstruction = {
 	opcode: OpCodes;
 	pos: number;
+};
+
+type CompilationScope = {
+	instructions: Instructions;
+	previousInstruction: Maybe<EmittedInstruction>;
+	lastInstruction: Maybe<EmittedInstruction>;
 };

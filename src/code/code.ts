@@ -27,6 +27,9 @@ export enum OpCodes {
 	OpArray,
 	OpHash,
 	OpIndex,
+	OpCall,
+	OpReturnValue,
+	OpReturn,
 }
 type Definition = {
 	name: string;
@@ -148,6 +151,18 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	[OpCodes.OpAnd]: {
 		name: OpCodes[OpCodes.OpAdd],
 		char: "&&",
+		operandWidths: [],
+	},
+	[OpCodes.OpCall]: {
+		name: OpCodes[OpCodes.OpCall],
+		operandWidths: [],
+	},
+	[OpCodes.OpReturnValue]: {
+		name: OpCodes[OpCodes.OpReturnValue],
+		operandWidths: [],
+	},
+	[OpCodes.OpReturn]: {
+		name: OpCodes[OpCodes.OpReturn],
 		operandWidths: [],
 	},
 };
