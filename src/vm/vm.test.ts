@@ -215,6 +215,10 @@ describe("vm", () => {
 					expected: 15,
 				},
 				{
+					input: "let fivePlusTen = fn ()=> 5+10; fivePlusTen()",
+					expected: 15,
+				},
+				{
 					input: "fn(){return 200 - fn(){return 1}()}()",
 					expected: 199,
 				},
@@ -226,7 +230,14 @@ describe("vm", () => {
 					input: "fn(){return 200 - fn()=>{1}()}()",
 					expected: 199,
 				},
-
+				{
+					input: "fn(){return 200 - (fn()=>1)()}()",
+					expected: 199,
+				},
+				{
+					input: "(fn()=> 200 - (fn ()=> 1)())()",
+					expected: 199,
+				},
 				{
 					input: "fn(){return 100; 99;}()",
 					expected: 100,

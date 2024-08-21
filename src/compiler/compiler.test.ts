@@ -530,6 +530,23 @@ describe("compiler", () => {
 					make(OpCodes.OpPop),
 				],
 			},
+			{
+				input: "fn()=> 5+5",
+				expectedConstants: [
+					5,
+					5,
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpPop),
+				],
+			},
 		]);
 	});
 	it("should compile call expressions", () => {

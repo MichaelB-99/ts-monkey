@@ -199,10 +199,16 @@ export class Compiler {
 		if (node instanceof FunctionLiteral) {
 			this.enterScope();
 			this.compile(node.body);
+			// i.e an arrow function without a block statement body e.g let onePlusTen = fn ()=> 1+10
+			const isShortenedArrow =
+				node.isArrow && !(node.body instanceof BlockStatement);
 			if (this.lastInstructionIs(OpCodes.OpPop)) {
 				this.removeLastPop();
 				this.emit(OpCodes.OpReturnValue);
+			} else if (isShortenedArrow) {
+				this.emit(OpCodes.OpReturnValue);
 			}
+
 			if (!this.lastInstructionIs(OpCodes.OpReturnValue)) {
 				this.emit(OpCodes.OpReturn);
 			}

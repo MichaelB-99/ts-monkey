@@ -131,6 +131,7 @@ export class VM {
 				case OpCodes.OpReturnValue: {
 					const returnVal = this.pop();
 					this.popFrame();
+					// pop the compiled function off the stack
 					this.pop();
 					this.push(returnVal);
 					break;
