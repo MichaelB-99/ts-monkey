@@ -16,6 +16,11 @@ describe("make", () => {
 				operands: [65534],
 				expected: [OpCodes.OpConstant, 255, 254],
 			},
+			{
+				op: OpCodes.OpGetLocal,
+				operands: [255],
+				expected: [OpCodes.OpGetLocal, 255],
+			},
 		];
 		for (const { op, operands, expected } of tests) {
 			const instruction = make(op, ...operands);
@@ -33,6 +38,11 @@ it("should decode operands", () => {
 			operands: [65534],
 			bytesRead: 2,
 		},
+		{
+			op: OpCodes.OpGetLocal,
+			operands: [255],
+			bytesRead: 1,
+		},
 	];
 	for (const { op, operands, bytesRead } of tests) {
 		const instruction = make(op, ...operands);
@@ -48,12 +58,14 @@ it("should decode operands", () => {
 
 it("should stringify instructions", () => {
 	const instructions: Instructions[] = [
+		make(OpCodes.OpAdd),
+		make(OpCodes.OpGetLocal, 1),
 		make(OpCodes.OpConstant, 1),
-		make(OpCodes.OpConstant, 2),
 		make(OpCodes.OpConstant, 65535),
 	];
-	const expected = `0000 OpConstant 1
-0003 OpConstant 2
+	const expected = `0000 OpAdd 
+0001 OpGetLocal 1
+0003 OpConstant 1
 0006 OpConstant 65535`;
 	const flattenedIns = new Uint8Array(flattenTypedArrays(instructions));
 

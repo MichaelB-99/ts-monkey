@@ -579,10 +579,65 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile functions with local variables", () => {
+		runCompilerTests([
+			{
+				input: "let num = 55; fn(){num}",
+				expectedConstants: [
+					55,
+					[make(OpCodes.OpGetGlobal, 0), make(OpCodes.OpReturnValue)],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpSetGlobal, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "fn(){let num = 55; num}",
+				expectedConstants: [
+					55,
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpSetLocal, 0),
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: " fn(){let a = 55; let b = 77; a+b}",
+				expectedConstants: [
+					55,
+					77,
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpSetLocal, 0),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpSetLocal, 1),
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpGetLocal, 1),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 
 	it("should be the correct compiler scope", () => {
 		const compiler = new Compiler();
 		expect(compiler.scopeIndex).toBe(0);
+		const globalSymbolTable = compiler.symbolTable;
 		compiler.emit(OpCodes.OpMult);
 		compiler.enterScope();
 		expect(compiler.scopeIndex).toBe(1);
@@ -591,7 +646,10 @@ describe("compiler", () => {
 		expect(compiler.scopes[compiler.scopeIndex].lastInstruction?.opcode).toBe(
 			OpCodes.OpSub,
 		);
+		expect(compiler.symbolTable.outer).toBe(globalSymbolTable);
 		compiler.leaveScope();
+		expect(compiler.symbolTable).toBe(globalSymbolTable);
+
 		expect(compiler.scopeIndex).toBe(0);
 		compiler.emit(OpCodes.OpAdd);
 		expect(compiler.scopes[compiler.scopeIndex].instructions).toHaveLength(2);

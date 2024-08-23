@@ -30,6 +30,8 @@ export enum OpCodes {
 	OpCall,
 	OpReturnValue,
 	OpReturn,
+	OpSetLocal,
+	OpGetLocal,
 }
 type Definition = {
 	name: string;
@@ -165,6 +167,14 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 		name: OpCodes[OpCodes.OpReturn],
 		operandWidths: [],
 	},
+	[OpCodes.OpSetLocal]: {
+		name: OpCodes[OpCodes.OpSetLocal],
+		operandWidths: [1],
+	},
+	[OpCodes.OpGetLocal]: {
+		name: OpCodes[OpCodes.OpGetLocal],
+		operandWidths: [1],
+	},
 };
 export const lookupOpCode = (opcode: OpCodes) => {
 	const def = definitionsMap[opcode];
@@ -194,6 +204,8 @@ export function make(opcode: OpCodes, ...operands: number[]) {
 			case 2:
 				dv.setUint16(offset, o);
 				break;
+			case 1:
+				dv.setUint8(offset, o);
 		}
 
 		offset += width;
@@ -208,9 +220,10 @@ export function readOperands(def: Definition, ins: Instructions) {
 		switch (w) {
 			case 2:
 				operands[i] = dv.getUint16(offset);
-
 				break;
-
+			case 1:
+				operands[i] = dv.getUint8(offset);
+				break;
 			default:
 				break;
 		}
@@ -242,4 +255,9 @@ const formatInstruction = (def: Definition, ops: number[]) => {
 export const readUint16 = (arr: Instructions) => {
 	const dv = new DataView(arr.buffer);
 	return dv.getUint16(0);
+};
+
+export const readUint8 = (arr: Instructions) => {
+	const dv = new DataView(arr.buffer);
+	return dv.getUint8(0);
 };

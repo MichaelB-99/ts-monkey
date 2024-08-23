@@ -143,7 +143,10 @@ export class HashObject implements InternalObject {
 	}
 }
 export class CompiledFunctionObject implements InternalObject {
-	constructor(public readonly instructions: Instructions) {}
+	constructor(
+		public readonly instructions: Instructions,
+		public numLocals: number,
+	) {}
 	type(): ObjectType {
 		return ObjectType.COMPILED_FUNCTION_OBJ;
 	}

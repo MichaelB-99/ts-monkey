@@ -2,6 +2,7 @@ import {
 	type Instructions,
 	OpCodes,
 	definitionsMap,
+	readUint8,
 	readUint16,
 } from "../code/code";
 import type { Bytecode } from "../compiler/compiler";
@@ -27,8 +28,8 @@ export class VM {
 		private bytecode: Bytecode,
 		private globals: Maybe<InternalObject>[] = [],
 	) {
-		const mainFn = new CompiledFunctionObject(this.bytecode.instructions);
-		const mainFrame = new Frame(mainFn);
+		const mainFn = new CompiledFunctionObject(this.bytecode.instructions, 0);
+		const mainFrame = new Frame(mainFn, 0);
 		this.frames[0] = mainFrame;
 	}
 	public stack: Maybe<InternalObject>[] = [];
@@ -63,6 +64,20 @@ export class VM {
 					const globalIndex = readUint16(instructions.slice(ip + 1));
 					this.currentFrame.ip += 2;
 					this.push(this.globals[globalIndex]);
+					break;
+				}
+				case OpCodes.OpSetLocal: {
+					const index = readUint8(instructions.slice(ip + 1));
+					this.currentFrame.ip += 1;
+					const val = this.pop();
+					this.stack[this.currentFrame.basePointer + index] = val;
+					break;
+				}
+				case OpCodes.OpGetLocal: {
+					const index = readUint8(instructions.slice(ip + 1));
+					this.currentFrame.ip += 1;
+					const val = this.stack[this.currentFrame.basePointer + index];
+					this.push(val);
 					break;
 				}
 
@@ -125,22 +140,23 @@ export class VM {
 						break;
 					}
 
-					this.pushFrame(new Frame(fn));
+					this.pushFrame(new Frame(fn, this.stackPointer));
+					this.stackPointer = this.currentFrame.basePointer + fn.numLocals;
 					break;
 				}
 				case OpCodes.OpReturnValue: {
 					const returnVal = this.pop();
-					this.popFrame();
-					// pop the compiled function off the stack
-					this.pop();
+					const frame = this.popFrame();
+					this.stackPointer = frame.basePointer - 1;
 					this.push(returnVal);
 					break;
 				}
-				case OpCodes.OpReturn:
-					this.popFrame();
-					this.pop();
+				case OpCodes.OpReturn: {
+					const frame = this.popFrame();
+					this.stackPointer = frame.basePointer - 1;
 					this.push(NULL_OBJ);
 					break;
+				}
 				case OpCodes.OpNull: {
 					this.push(NULL_OBJ);
 					break;

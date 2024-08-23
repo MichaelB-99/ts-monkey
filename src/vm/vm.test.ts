@@ -263,6 +263,42 @@ describe("vm", () => {
 						"let returnsOne = fn(){1}; let returnFn = fn(){returnsOne}; returnFn()()",
 					expected: 1,
 				},
+				{
+					input:
+						"let returnsOneReturner = fn() { let returnsOne = fn() { 1; }; returnsOne; }; returnsOneReturner()();",
+					expected: 1,
+				},
+			]);
+		});
+		it("should have locals", () => {
+			runVmTests([
+				{
+					input: "let one = fn(){let one = 1; one};one();",
+					expected: 1,
+				},
+				{
+					input:
+						"let onePlusTwo = fn(){let one = 1; let two=2 one+two};onePlusTwo();",
+					expected: 3,
+				},
+				{
+					input: `let onePlusTwo = fn(){let one = 1; let two=2; one+two};
+						let threePlusFour= fn(){let three =3; let four=4; three+4;}
+						onePlusTwo()+threePlusFour();`,
+					expected: 10,
+				},
+				{
+					input:
+						"let firstFoobar = fn(){let foobar = 50; foobar};let secondFoobar = fn(){let foobar=100; foobar;}firstFoobar() + secondFoobar();",
+					expected: 150,
+				},
+				{
+					input: `let globalSeed = 50; 
+						let minusOne = fn() { let num = 1; globalSeed - num; } 
+						let minusTwo = fn() { let num = 2; globalSeed - num; } 
+						minusOne() + minusTwo();`,
+					expected: 97,
+				},
 			]);
 		});
 	});

@@ -2,6 +2,7 @@ import type { Maybe } from "../utils/types";
 
 export enum SymbolScope {
 	GlobalScope = "GLOBAL",
+	LocalScope = "LOCAL",
 }
 export type SymbolType = {
 	name: string;
@@ -10,14 +11,16 @@ export type SymbolType = {
 };
 
 export class SymbolTable {
-	private numDefs = 0;
+	public numDefs = 0;
 	private readonly store = new Map<string, SymbolType>();
+	public outer?: SymbolTable;
 
 	define(name: string): SymbolType {
+		const scope = this.outer ? SymbolScope.LocalScope : SymbolScope.GlobalScope;
 		const symbol = {
 			name,
 			index: this.numDefs,
-			scope: SymbolScope.GlobalScope,
+			scope,
 		};
 		this.store.set(name, symbol);
 		this.numDefs++;
@@ -25,6 +28,15 @@ export class SymbolTable {
 	}
 	resolve(name: string): Maybe<SymbolType> {
 		const symbol = this.store.get(name);
+		if (!symbol && this.outer) {
+			const sym = this.outer.resolve(name);
+			return sym;
+		}
 		return symbol;
+	}
+	static newEnclosedSymbolTable(outer: SymbolTable) {
+		const newSymbolTable = new SymbolTable();
+		newSymbolTable.outer = outer;
+		return newSymbolTable;
 	}
 }

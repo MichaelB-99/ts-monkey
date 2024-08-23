@@ -26,7 +26,7 @@ import {
 	StringObject,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
-import { SymbolTable } from "./symbol-table";
+import { SymbolScope, SymbolTable } from "./symbol-table";
 
 export class Compiler {
 	public scopeIndex = 0;
@@ -39,7 +39,7 @@ export class Compiler {
 	];
 	constructor(
 		private constants: Maybe<InternalObject>[] = [],
-		private symbolTable: SymbolTable = new SymbolTable(),
+		public symbolTable: SymbolTable = new SymbolTable(),
 	) {}
 
 	compile(node: Maybe<Node>) {
@@ -162,14 +162,22 @@ export class Compiler {
 		if (node instanceof LetStatement) {
 			this.compile(node.value);
 			const symbol = this.symbolTable.define(node.name?.value!);
-			this.emit(OpCodes.OpSetGlobal, symbol.index);
+			if (symbol.scope === SymbolScope.GlobalScope) {
+				this.emit(OpCodes.OpSetGlobal, symbol.index);
+			} else {
+				this.emit(OpCodes.OpSetLocal, symbol.index);
+			}
 		}
 		if (node instanceof Identifier) {
 			const symbol = this.symbolTable.resolve(node.value);
 			if (!symbol) {
 				throw new Error(`undefined variable: ${node.value}`);
 			}
-			this.emit(OpCodes.OpGetGlobal, symbol.index);
+			if (symbol.scope === SymbolScope.GlobalScope) {
+				this.emit(OpCodes.OpGetGlobal, symbol.index);
+			} else {
+				this.emit(OpCodes.OpGetLocal, symbol.index);
+			}
 		}
 
 		if (node instanceof ArrayLiteral) {
@@ -213,8 +221,9 @@ export class Compiler {
 				this.emit(OpCodes.OpReturn);
 			}
 
+			const numLocals = this.symbolTable.numDefs;
 			const instructions = this.leaveScope();
-			const fn = new CompiledFunctionObject(instructions);
+			const fn = new CompiledFunctionObject(instructions, numLocals);
 			this.emit(OpCodes.OpConstant, this.addConstant(fn));
 		}
 		if (node instanceof CallExpression) {
@@ -271,6 +280,7 @@ export class Compiler {
 		this.replaceInstruction(opPos, newInstruction);
 	}
 	enterScope() {
+		this.symbolTable = SymbolTable.newEnclosedSymbolTable(this.symbolTable);
 		const scope: CompilationScope = {
 			instructions: new Uint8Array(),
 			lastInstruction: undefined,
@@ -280,6 +290,7 @@ export class Compiler {
 		this.scopeIndex++;
 	}
 	leaveScope() {
+		this.symbolTable = this.symbolTable.outer!;
 		const instructions = this.currentInstructions;
 		this.scopes.pop();
 		this.scopeIndex--;
