@@ -28,7 +28,7 @@ export class VM {
 		private bytecode: Bytecode,
 		private globals: Maybe<InternalObject>[] = [],
 	) {
-		const mainFn = new CompiledFunctionObject(this.bytecode.instructions, 0);
+		const mainFn = new CompiledFunctionObject(this.bytecode.instructions, 0, 0);
 		const mainFrame = new Frame(mainFn, 0);
 		this.frames[0] = mainFrame;
 	}
@@ -132,16 +132,9 @@ export class VM {
 					break;
 				}
 				case OpCodes.OpCall: {
-					const fn = this.stack[this.stackPointer - 1];
-					if (!(fn instanceof CompiledFunctionObject)) {
-						this.push(
-							new ErrorObject(`this is not a function. got: ${fn?.type()}`),
-						);
-						break;
-					}
-
-					this.pushFrame(new Frame(fn, this.stackPointer));
-					this.stackPointer = this.currentFrame.basePointer + fn.numLocals;
+					const numArgs = readUint8(instructions.slice(ip + 1));
+					this.currentFrame.ip += 1;
+					this.callFunction(numArgs);
 					break;
 				}
 				case OpCodes.OpReturnValue: {
@@ -197,6 +190,24 @@ export class VM {
 					break;
 			}
 		}
+	}
+	callFunction(numArgs: number) {
+		const fn = this.stack[this.stackPointer - numArgs - 1];
+		if (!(fn instanceof CompiledFunctionObject)) {
+			return this.push(
+				new ErrorObject(`this is not a function. got: ${fn?.type()}`),
+			);
+		}
+
+		if (fn.numParams !== numArgs) {
+			this.push(
+				new ErrorObject(
+					`wrong number of arguments. wanted=${fn.numParams}, got=${numArgs}`,
+				),
+			);
+		}
+		this.pushFrame(new Frame(fn, this.stackPointer - numArgs));
+		this.stackPointer = this.currentFrame.basePointer + fn.numLocals;
 	}
 	indexString(indexee: StringObject, idx: Maybe<InternalObject>) {
 		if (!(idx instanceof IntegerObject)) {

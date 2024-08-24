@@ -204,8 +204,10 @@ export class Compiler {
 				this.addConstant(new StringObject(node.value)),
 			);
 		}
+
 		if (node instanceof FunctionLiteral) {
 			this.enterScope();
+			node.parameters?.forEach((param) => this.symbolTable.define(param.value));
 			this.compile(node.body);
 			// i.e an arrow function without a block statement body e.g let onePlusTen = fn ()=> 1+10
 			const isShortenedArrow =
@@ -223,12 +225,17 @@ export class Compiler {
 
 			const numLocals = this.symbolTable.numDefs;
 			const instructions = this.leaveScope();
-			const fn = new CompiledFunctionObject(instructions, numLocals);
+			const fn = new CompiledFunctionObject(
+				instructions,
+				numLocals,
+				node.parameters!.length,
+			);
 			this.emit(OpCodes.OpConstant, this.addConstant(fn));
 		}
 		if (node instanceof CallExpression) {
 			this.compile(node.func);
-			this.emit(OpCodes.OpCall);
+			node.args?.forEach((arg) => this.compile(arg));
+			this.emit(OpCodes.OpCall, node.args!.length);
 		}
 		if (node instanceof ReturnStatement) {
 			this.compile(node.value);

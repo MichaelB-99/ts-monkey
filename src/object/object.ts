@@ -146,6 +146,7 @@ export class CompiledFunctionObject implements InternalObject {
 	constructor(
 		public readonly instructions: Instructions,
 		public numLocals: number,
+		public numParams: number,
 	) {}
 	type(): ObjectType {
 		return ObjectType.COMPILED_FUNCTION_OBJ;

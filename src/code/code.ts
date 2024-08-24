@@ -157,7 +157,7 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpCall]: {
 		name: OpCodes[OpCodes.OpCall],
-		operandWidths: [],
+		operandWidths: [1],
 	},
 	[OpCodes.OpReturnValue]: {
 		name: OpCodes[OpCodes.OpReturnValue],

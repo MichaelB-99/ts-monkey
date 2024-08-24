@@ -301,6 +301,72 @@ describe("vm", () => {
 				},
 			]);
 		});
+		it("should error if function called with wrong number of arguments", () => {
+			runVmTests([
+				{
+					input: "fn(a){a}()",
+					expected: new ErrorObject(
+						"wrong number of arguments. wanted=1, got=0",
+					),
+				},
+				{
+					input: "fn(a,b){a+b}(1)",
+					expected: new ErrorObject(
+						"wrong number of arguments. wanted=2, got=1",
+					),
+				},
+			]);
+		});
+		it("should work with args", () => {
+			runVmTests([
+				{
+					input: "let identity = fn (a){a}; identity(1)",
+					expected: 1,
+				},
+				{
+					input: "let identity = fn x => x; identity(1)",
+					expected: 1,
+				},
+				{
+					input: `
+					let sum = fn(a, b) {
+					let c = a + b;
+					c;
+					};
+					sum(1, 2);
+					`,
+					expected: 3,
+				},
+				{
+					input: `
+					let sum = fn(a, b) {
+					let c = a + b;
+					c;
+					};
+					sum(1, 2) + sum(3, 4);`,
+					expected: 10,
+				},
+				{
+					input: `
+					let sum = fn(a, b) {
+					let c = a + b;
+					c;
+					};
+					let outer = fn() {
+					sum(1, 2) + sum(3, 4);
+					};
+					outer();
+					`,
+					expected: 10,
+				},
+				{
+					input: `let return1 = fn ()=> 1; 
+						let sum = fn(x,y)=> x+y;
+						sum(return1(),return1())`,
+					expected: 2,
+				},
+			]);
+		});
 	});
 });
 
