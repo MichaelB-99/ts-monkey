@@ -359,7 +359,7 @@ export const applyFunction = (
 		return unwrapReturnValue(evaluated);
 	}
 	if (func instanceof BuiltInObject) {
-		return func.fn(...args);
+		return func.fn({ env: "interpreter", args });
 	}
 	return new ErrorObject(`not a function: ${func?.type()}`);
 };

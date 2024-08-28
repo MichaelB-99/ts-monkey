@@ -693,6 +693,113 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile builtins", () => {
+		runCompilerTests([
+			{
+				input: "len([]); push([],1)",
+				expectedConstants: [1],
+				expectedInstructions: [
+					make(OpCodes.OpGetBuiltin, 0),
+					make(OpCodes.OpArray, 0),
+					make(OpCodes.OpCall, 1),
+					make(OpCodes.OpPop),
+					make(OpCodes.OpGetBuiltin, 5),
+					make(OpCodes.OpArray, 0),
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpCall, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "fn(){len([])}",
+				expectedConstants: [
+					[
+						make(OpCodes.OpGetBuiltin, 0),
+						make(OpCodes.OpArray, 0),
+						make(OpCodes.OpCall, 1),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "map([1,2,3,4], fn x => x*2)",
+				expectedConstants: [
+					1,
+					2,
+					3,
+					4,
+					2,
+					[
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpConstant, 4),
+						make(OpCodes.OpMult),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpGetBuiltin, 6),
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpArray, 4),
+					make(OpCodes.OpConstant, 5),
+					make(OpCodes.OpCall, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "reduce([1,2], fn (acc,curr)=> acc+curr) ",
+				expectedConstants: [
+					1,
+					2,
+					[
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpGetLocal, 1),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpGetBuiltin, 8),
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpArray, 2),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpCall, 2),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "reduce([1,2], fn (acc,curr)=> acc+curr,10) ",
+				expectedConstants: [
+					1,
+					2,
+					[
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpGetLocal, 1),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpReturnValue),
+					],
+					10,
+				],
+				expectedInstructions: [
+					make(OpCodes.OpGetBuiltin, 8),
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpArray, 2),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpCall, 3),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 
 	it("should be the correct compiler scope", () => {
 		const compiler = new Compiler();

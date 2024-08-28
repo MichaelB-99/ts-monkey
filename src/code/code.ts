@@ -32,6 +32,7 @@ export enum OpCodes {
 	OpReturn,
 	OpSetLocal,
 	OpGetLocal,
+	OpGetBuiltin,
 }
 type Definition = {
 	name: string;
@@ -173,6 +174,10 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpGetLocal]: {
 		name: OpCodes[OpCodes.OpGetLocal],
+		operandWidths: [1],
+	},
+	[OpCodes.OpGetBuiltin]: {
+		name: OpCodes[OpCodes.OpGetBuiltin],
 		operandWidths: [1],
 	},
 };

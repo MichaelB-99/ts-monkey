@@ -368,6 +368,132 @@ describe("vm", () => {
 			]);
 		});
 	});
+	it("should work with builtin functions", () => {
+		runVmTests([
+			{ input: `len("")`, expected: 0 },
+			{ input: "len([])", expected: 0 },
+			{ input: `len("four")`, expected: 4 },
+			{ input: `len("hello world")`, expected: 11 },
+			{
+				input: "len(1)",
+				expected: new ErrorObject(
+					"argument to 'len' not supported, got INTEGER",
+				),
+			},
+			{
+				input: "len(1)",
+				expected: new ErrorObject(
+					"argument to 'len' not supported, got INTEGER",
+				),
+			},
+			{
+				input: `len("one", "two")`,
+				expected: new ErrorObject("wrong number of arguments. got=2, want=1"),
+			},
+			{
+				input: `len("one", "two")`,
+				expected: new ErrorObject("wrong number of arguments. got=2, want=1"),
+			},
+			{ input: `puts("hello", "world!")`, expected: null },
+			{ input: "first([1, 2, 3])", expected: 1 },
+			{ input: "first([])", expected: null },
+			{
+				input: "first(1)",
+				expected: new ErrorObject(
+					"'first' function only accepts an array, got: INTEGER",
+				),
+			},
+
+			{ input: "last([1, 2, 3])", expected: 3 },
+			{ input: "last([])", expected: null },
+			{
+				input: "last(1)",
+				expected: new ErrorObject(
+					"'last' function only accepts an array, got: INTEGER",
+				),
+			},
+
+			{ input: "rest([1, 2, 3])", expected: [2, 3] },
+			{ input: `rest(["hello", "world","!"])`, expected: ["world", "!"] },
+			{ input: "rest([])", expected: [] },
+			{ input: "push([], 1)", expected: [1] },
+			{ input: `push(["hello"],"world")`, expected: ["hello", "world"] },
+			{ input: "map([1,2,3,4], fn x => x*2)", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4], fn (x,i) => x+i)", expected: [1, 3, 5, 7] },
+			{ input: "map([1,2,3,4],fn(x){x*2})", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4],fn(_,i){i})", expected: [0, 1, 2, 3] },
+			{ input: "map([1,2,3,4],fn(x)=> x*2)", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4],fn x => x*2)", expected: [2, 4, 6, 8] },
+			{ input: "map([1,2,3,4],fn(_,i)=> i)", expected: [0, 1, 2, 3] },
+			{ input: "map([1],fn x => map([x], fn y => y)[0])", expected: [1] },
+			{ input: "find([1,2,3,4], fn (x) => x==2)", expected: 2 },
+			{ input: "find([1,2,3,4], fn (x) => x>4)", expected: null },
+			{ input: 'find(["a","ab","abc"],fn(x){len(x)>2})', expected: "abc" },
+			{ input: 'find(["a","ab","abc"],fn x =>len(x)>2)', expected: "abc" },
+			{ input: 'find(["a","ab","abc"],fn x => len(x)>2)', expected: "abc" },
+			{ input: "reduce([1,2,3,4,5], fn (acc,curr) => acc+curr)", expected: 15 },
+			{ input: "reduce([1], fn (acc,curr) => acc+curr,100)", expected: 101 },
+
+			{
+				input: 'reduce(["hello ", "world"],fn(acc,curr){acc+curr})',
+				expected: "hello world",
+			},
+			{
+				input: 'reduce(["hello ", "world"],fn(acc,curr)=>acc+curr)',
+				expected: "hello world",
+			},
+			{
+				input:
+					'reduce(["hello ", "world","!"],fn(acc,curr){acc+curr},"Monkey says: ")',
+				expected: "Monkey says: hello world!",
+			},
+			{
+				input:
+					'reduce(["hello ", "world","!"],fn(acc,curr)=>acc+curr,"Monkey says: ")',
+				expected: "Monkey says: hello world!",
+			},
+
+			{ input: "filter([1,2,3,4], fn (x) => x>2)", expected: [3, 4] },
+
+			{
+				input: 'filter(["a","ab","abc"],fn(x){len(x)>1})',
+				expected: ["ab", "abc"],
+			},
+			{
+				input: 'filter(["a","ab","abc"],fn(x)=> len(x)>1)',
+				expected: ["ab", "abc"],
+			},
+			{
+				input: 'filter(["a","ab","abc"],fn x=> len(x)>1)',
+				expected: ["ab", "abc"],
+			},
+			{
+				input: "filter([1,2,3,4],fn(num,i){num + i > 3})",
+				expected: [3, 4],
+			},
+			{
+				input: "filter([1,2,3,4],fn(num,i)=> num + i > 3)",
+				expected: [3, 4],
+			},
+			{
+				input: "filter([true,false,false,true],fn(x){!!x})",
+				expected: [true, true],
+			},
+			{
+				input: "filter([true,false,false,true],fn(x)=>!!x)",
+				expected: [true, true],
+			},
+			{
+				input: "map([1,2,3,4],fn (x){let multiplier =2; x*multiplier})",
+				expected: [2, 4, 6, 8],
+			},
+			{
+				input:
+					"let global = 5;map([1,2,3,4],fn (x){let multiplier =2; (x+global)*multiplier})",
+				expected: [12, 14, 16, 18],
+			},
+		]);
+	});
 });
 
 const runVmTests = (

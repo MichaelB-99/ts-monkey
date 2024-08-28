@@ -19,6 +19,7 @@ import {
 	StringLiteral,
 } from "../ast/ast";
 import { type Instructions, OpCodes, make } from "../code/code";
+import { builtins } from "../object/builtins";
 import {
 	CompiledFunctionObject,
 	IntegerObject,
@@ -40,7 +41,9 @@ export class Compiler {
 	constructor(
 		private constants: Maybe<InternalObject>[] = [],
 		public symbolTable: SymbolTable = new SymbolTable(),
-	) {}
+	) {
+		builtins.forEach((b, i) => symbolTable.defineBuiltin(i, b.name));
+	}
 
 	compile(node: Maybe<Node>) {
 		if (node instanceof Program) {
@@ -173,10 +176,19 @@ export class Compiler {
 			if (!symbol) {
 				throw new Error(`undefined variable: ${node.value}`);
 			}
-			if (symbol.scope === SymbolScope.GlobalScope) {
-				this.emit(OpCodes.OpGetGlobal, symbol.index);
-			} else {
-				this.emit(OpCodes.OpGetLocal, symbol.index);
+			switch (symbol.scope) {
+				case SymbolScope.GlobalScope:
+					this.emit(OpCodes.OpGetGlobal, symbol.index);
+					break;
+				case SymbolScope.BuiltinScope:
+					this.emit(OpCodes.OpGetBuiltin, symbol.index);
+					break;
+				case SymbolScope.LocalScope:
+					this.emit(OpCodes.OpGetLocal, symbol.index);
+					break;
+
+				default:
+					break;
 			}
 		}
 

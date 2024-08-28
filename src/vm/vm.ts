@@ -6,9 +6,11 @@ import {
 	readUint16,
 } from "../code/code";
 import type { Bytecode } from "../compiler/compiler";
+import { builtins } from "../object/builtins";
 import {
 	ArrayObject,
 	BooleanObject,
+	BuiltInObject,
 	CompiledFunctionObject,
 	ErrorObject,
 	FALSE_OBJ,
@@ -25,7 +27,7 @@ import { Frame } from "./frame";
 const STACK_SIZE = 2048;
 export class VM {
 	constructor(
-		private bytecode: Bytecode,
+		public bytecode: Bytecode,
 		private globals: Maybe<InternalObject>[] = [],
 	) {
 		const mainFn = new CompiledFunctionObject(this.bytecode.instructions, 0, 0);
@@ -134,7 +136,7 @@ export class VM {
 				case OpCodes.OpCall: {
 					const numArgs = readUint8(instructions.slice(ip + 1));
 					this.currentFrame.ip += 1;
-					this.callFunction(numArgs);
+					this.executeCall(numArgs);
 					break;
 				}
 				case OpCodes.OpReturnValue: {
@@ -142,6 +144,12 @@ export class VM {
 					const frame = this.popFrame();
 					this.stackPointer = frame.basePointer - 1;
 					this.push(returnVal);
+					break;
+				}
+				case OpCodes.OpGetBuiltin: {
+					const index = readUint8(instructions.slice(ip + 1));
+					this.currentFrame.ip += 1;
+					this.push(builtins.at(index)!.builtin);
 					break;
 				}
 				case OpCodes.OpReturn: {
@@ -191,16 +199,19 @@ export class VM {
 			}
 		}
 	}
-	callFunction(numArgs: number) {
+	executeCall(numArgs: number) {
 		const fn = this.stack[this.stackPointer - numArgs - 1];
-		if (!(fn instanceof CompiledFunctionObject)) {
-			return this.push(
-				new ErrorObject(`this is not a function. got: ${fn?.type()}`),
-			);
+		if (fn instanceof CompiledFunctionObject) {
+			return this.callFunction(fn, numArgs);
 		}
-
+		if (fn instanceof BuiltInObject) {
+			return this.callBuiltin(fn, numArgs);
+		}
+		return this.push(new ErrorObject("calling non function"));
+	}
+	callFunction(fn: CompiledFunctionObject, numArgs: number) {
 		if (fn.numParams !== numArgs) {
-			this.push(
+			return this.push(
 				new ErrorObject(
 					`wrong number of arguments. wanted=${fn.numParams}, got=${numArgs}`,
 				),
@@ -208,6 +219,20 @@ export class VM {
 		}
 		this.pushFrame(new Frame(fn, this.stackPointer - numArgs));
 		this.stackPointer = this.currentFrame.basePointer + fn.numLocals;
+	}
+	callBuiltin(fn: BuiltInObject, numArgs: number) {
+		const args = this.stack.slice(
+			this.stackPointer - numArgs,
+			this.stackPointer,
+		);
+		const res = fn.fn({
+			env: "vm",
+			bytecode: this.bytecode,
+			globals: this.globals,
+			args,
+		});
+		this.stackPointer = this.stackPointer - numArgs - 1;
+		this.push(res);
 	}
 	indexString(indexee: StringObject, idx: Maybe<InternalObject>) {
 		if (!(idx instanceof IntegerObject)) {

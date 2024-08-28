@@ -3,6 +3,7 @@ import type { Maybe } from "../utils/types";
 export enum SymbolScope {
 	GlobalScope = "GLOBAL",
 	LocalScope = "LOCAL",
+	BuiltinScope = "BUILTIN",
 }
 export type SymbolType = {
 	name: string;
@@ -24,6 +25,11 @@ export class SymbolTable {
 		};
 		this.store.set(name, symbol);
 		this.numDefs++;
+		return symbol;
+	}
+	defineBuiltin(index: number, name: string) {
+		const symbol = { name, scope: SymbolScope.BuiltinScope, index };
+		this.store.set(name, symbol);
 		return symbol;
 	}
 	resolve(name: string): Maybe<SymbolType> {

@@ -1,5 +1,6 @@
 import { BlockStatement, type Expression, type Identifier } from "../ast/ast";
 import type { Instructions } from "../code/code";
+import type { Bytecode } from "../compiler/compiler";
 import type { Environment } from "../eval/environment";
 import type { Maybe } from "../utils/types";
 
@@ -103,8 +104,15 @@ export class StringObject implements InternalObject {
 	// 	return `${this.type()}|${this.value}`;
 	// }
 }
-type BuiltinFunction = (
-	...args: Maybe<InternalObject>[]
+export type BuiltinFunction = (
+	obj:
+		| {
+				env: "vm";
+				bytecode: Bytecode;
+				globals: Maybe<InternalObject>[];
+				args: Maybe<InternalObject>[];
+		  }
+		| { env: "interpreter"; args: Maybe<InternalObject>[] },
 ) => Maybe<InternalObject>;
 export class BuiltInObject implements InternalObject {
 	constructor(public fn: BuiltinFunction) {}

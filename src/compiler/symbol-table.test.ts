@@ -139,4 +139,21 @@ describe("resolve", () => {
 			});
 		});
 	});
+	it("should resolve builtins", () => {
+		const global = new SymbolTable();
+		const firstLocal = SymbolTable.newEnclosedSymbolTable(global);
+		const secondLocal = SymbolTable.newEnclosedSymbolTable(firstLocal);
+		const expected: SymbolType[] = [
+			{ name: "a", scope: SymbolScope.BuiltinScope, index: 0 },
+			{ name: "b", scope: SymbolScope.BuiltinScope, index: 1 },
+			{ name: "c", scope: SymbolScope.BuiltinScope, index: 2 },
+		];
+		expected.forEach((sym, i) => global.defineBuiltin(i, sym.name));
+		[global, firstLocal, secondLocal].forEach((table) =>
+			expected.forEach((sym, i) => {
+				const res = table.resolve(sym.name);
+				expect(res).toEqual(sym);
+			}),
+		);
+	});
 });
