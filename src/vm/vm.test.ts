@@ -368,6 +368,15 @@ describe("vm", () => {
 			]);
 		});
 	});
+	it("should return error if a non function tries to be called", () => {
+		runVmTests([
+			{ input: "1()", expected: new ErrorObject("calling non function") },
+			{
+				input: "let a = true; a()",
+				expected: new ErrorObject("calling non function"),
+			},
+		]);
+	});
 	it("should work with builtin functions", () => {
 		runVmTests([
 			{ input: `len("")`, expected: 0 },
