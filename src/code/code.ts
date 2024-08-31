@@ -267,12 +267,20 @@ const formatInstruction = (def: Definition, ops: number[]) => {
 	return `${def.name} ${ops.join(" ")}`;
 };
 
-export const readUint16 = (arr: Instructions) => {
-	const dv = new DataView(arr.buffer);
+export const readUint16 = (arr: Instructions, offset = 0): number => {
+	const dv = new DataView(
+		arr.buffer,
+		arr.byteOffset + offset,
+		arr.byteLength - offset,
+	);
 	return dv.getUint16(0);
 };
 
-export const readUint8 = (arr: Instructions) => {
-	const dv = new DataView(arr.buffer);
+export const readUint8 = (arr: Instructions, offset = 0): number => {
+	const dv = new DataView(
+		arr.buffer,
+		arr.byteOffset + offset,
+		arr.byteLength - offset,
+	);
 	return dv.getUint8(0);
 };

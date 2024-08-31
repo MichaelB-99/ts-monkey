@@ -52,41 +52,41 @@ export class VM {
 			op = this.currentFrame.instructions[ip];
 			switch (op) {
 				case OpCodes.OpConstant: {
-					const constIndex = readUint16(instructions.slice(ip + 1));
+					const constIndex = readUint16(instructions, ip + 1);
 					this.currentFrame.ip += 2;
 					this.push(this.bytecode.constants.at(constIndex));
 					break;
 				}
 				case OpCodes.OpClosure: {
-					const constIndex = readUint16(instructions.slice(ip + 1));
-					const free = readUint8(instructions.slice(ip + 3));
+					const constIndex = readUint16(instructions, ip + 1);
+					const free = readUint8(instructions, ip + 3);
 					this.currentFrame.ip += 3;
 					this.pushClosure(constIndex, free);
 					break;
 				}
 
 				case OpCodes.OpSetGlobal: {
-					const globalIndex = readUint16(instructions.slice(ip + 1));
+					const globalIndex = readUint16(instructions, ip + 1);
 					this.currentFrame.ip += 2;
 					const val = this.pop();
 					this.globals[globalIndex] = val;
 					break;
 				}
 				case OpCodes.OpGetGlobal: {
-					const globalIndex = readUint16(instructions.slice(ip + 1));
+					const globalIndex = readUint16(instructions, ip + 1);
 					this.currentFrame.ip += 2;
 					this.push(this.globals[globalIndex]);
 					break;
 				}
 				case OpCodes.OpSetLocal: {
-					const index = readUint8(instructions.slice(ip + 1));
+					const index = readUint8(instructions, ip + 1);
 					this.currentFrame.ip += 1;
 					const val = this.pop();
 					this.stack[this.currentFrame.basePointer + index] = val;
 					break;
 				}
 				case OpCodes.OpGetLocal: {
-					const index = readUint8(instructions.slice(ip + 1));
+					const index = readUint8(instructions, ip + 1);
 					this.currentFrame.ip += 1;
 					const val = this.stack[this.currentFrame.basePointer + index];
 					this.push(val);
@@ -94,14 +94,14 @@ export class VM {
 				}
 
 				case OpCodes.OpJump: {
-					const jumpTo = readUint16(instructions.slice(ip + 1));
+					const jumpTo = readUint16(instructions, ip + 1);
 					this.currentFrame.ip = jumpTo - 1;
 
 					break;
 				}
 
 				case OpCodes.OpJumpNotTruthy: {
-					const jumpTo = readUint16(instructions.slice(ip + 1));
+					const jumpTo = readUint16(instructions, ip + 1);
 					this.currentFrame.ip += 2;
 					const cond = this.pop();
 					if (!this.isTruthy(cond)) {
@@ -110,7 +110,7 @@ export class VM {
 					break;
 				}
 				case OpCodes.OpHash: {
-					const num = readUint16(instructions.slice(ip + 1));
+					const num = readUint16(instructions, ip + 1);
 					this.currentFrame.ip += 2;
 					const map = this.buildHash(num);
 					// map won't exist if we encounter error building hash, we stop and push error onto the stack instead
@@ -120,7 +120,7 @@ export class VM {
 					break;
 				}
 				case OpCodes.OpArray: {
-					const num = readUint16(instructions.slice(ip + 1));
+					const num = readUint16(instructions, ip + 1);
 					this.currentFrame.ip += 2;
 					const arr = [];
 					for (let index = 0; index < num; index++) {
@@ -144,14 +144,14 @@ export class VM {
 					break;
 				}
 				case OpCodes.OpGetFree: {
-					const index = readUint8(instructions.slice(ip + 1));
+					const index = readUint8(instructions, ip + 1);
 					this.currentFrame.ip += 1;
 					const currentClosure = this.currentFrame.closure;
 					this.push(currentClosure.free[index]);
 					break;
 				}
 				case OpCodes.OpCall: {
-					const numArgs = readUint8(instructions.slice(ip + 1));
+					const numArgs = readUint8(instructions, ip + 1);
 					this.currentFrame.ip += 1;
 					this.executeCall(numArgs);
 					break;
@@ -164,9 +164,9 @@ export class VM {
 					break;
 				}
 				case OpCodes.OpGetBuiltin: {
-					const index = readUint8(instructions.slice(ip + 1));
+					const index = readUint8(instructions, ip + 1);
 					this.currentFrame.ip += 1;
-					this.push(builtins.at(index)!.builtin);
+					this.push(builtins[index]!.builtin);
 					break;
 				}
 
@@ -312,8 +312,9 @@ export class VM {
 				return this.push(new IntegerObject(n1.value * n2.value));
 			case OpCodes.OpDiv:
 				return this.push(new IntegerObject(n1.value / n2.value));
-			case OpCodes.OpSub:
+			case OpCodes.OpSub: {
 				return this.push(new IntegerObject(n1.value - n2.value));
+			}
 
 			default:
 				break;
