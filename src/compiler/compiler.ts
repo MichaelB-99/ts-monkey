@@ -163,8 +163,8 @@ export class Compiler {
 			}
 		}
 		if (node instanceof LetStatement) {
-			this.compile(node.value);
 			const symbol = this.symbolTable.define(node.name?.value!);
+			this.compile(node.value);
 			if (symbol.scope === SymbolScope.GlobalScope) {
 				this.emit(OpCodes.OpSetGlobal, symbol.index);
 			} else {
