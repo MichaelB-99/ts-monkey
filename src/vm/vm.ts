@@ -37,7 +37,6 @@ export class VM {
 		this.frames[0] = mainFrame;
 	}
 	public stack: Maybe<InternalObject>[] = [];
-	public lastPoppedStackElement: Maybe<InternalObject>;
 	public stackPointer = 0;
 	public frames: Frame[] = [];
 	public framesIndex = 1;
@@ -45,73 +44,74 @@ export class VM {
 		let ip: number;
 		let instructions: Instructions;
 		let op: OpCodes;
-		while (this.currentFrame.ip < this.currentFrame.instructions.length) {
-			this.currentFrame.ip++;
-			instructions = this.currentFrame.instructions;
-			ip = this.currentFrame.ip;
-			op = this.currentFrame.instructions[ip];
+		let frame = this.currentFrame;
+		while (frame.ip < frame.instructions.length) {
+			frame.ip++;
+			instructions = frame.instructions;
+			ip = frame.ip;
+			op = frame.instructions[ip];
 			switch (op) {
 				case OpCodes.OpConstant: {
 					const constIndex = readUint16(instructions, ip + 1);
-					this.currentFrame.ip += 2;
-					this.push(this.bytecode.constants.at(constIndex));
+					frame.ip += 2;
+					this.push(this.bytecode.constants[constIndex]);
 					break;
 				}
 				case OpCodes.OpClosure: {
 					const constIndex = readUint16(instructions, ip + 1);
 					const free = readUint8(instructions, ip + 3);
-					this.currentFrame.ip += 3;
+					frame.ip += 3;
 					this.pushClosure(constIndex, free);
 					break;
 				}
 
 				case OpCodes.OpSetGlobal: {
 					const globalIndex = readUint16(instructions, ip + 1);
-					this.currentFrame.ip += 2;
+					frame.ip += 2;
 					const val = this.pop();
 					this.globals[globalIndex] = val;
 					break;
 				}
 				case OpCodes.OpGetGlobal: {
 					const globalIndex = readUint16(instructions, ip + 1);
-					this.currentFrame.ip += 2;
+					frame.ip += 2;
 					this.push(this.globals[globalIndex]);
 					break;
 				}
 				case OpCodes.OpSetLocal: {
 					const index = readUint8(instructions, ip + 1);
-					this.currentFrame.ip += 1;
+					frame.ip += 1;
 					const val = this.pop();
-					this.stack[this.currentFrame.basePointer + index] = val;
+					this.stack[frame.basePointer + index] = val;
 					break;
 				}
 				case OpCodes.OpGetLocal: {
 					const index = readUint8(instructions, ip + 1);
-					this.currentFrame.ip += 1;
-					const val = this.stack[this.currentFrame.basePointer + index];
+					frame.ip += 1;
+					const val = this.stack[frame.basePointer + index];
 					this.push(val);
 					break;
 				}
 
 				case OpCodes.OpJump: {
 					const jumpTo = readUint16(instructions, ip + 1);
-					this.currentFrame.ip = jumpTo - 1;
+					frame.ip = jumpTo - 1;
 
 					break;
 				}
 
 				case OpCodes.OpJumpNotTruthy: {
 					const jumpTo = readUint16(instructions, ip + 1);
-					this.currentFrame.ip += 2;
+					frame.ip += 2;
 					const cond = this.pop();
 					if (!this.isTruthy(cond)) {
-						this.currentFrame.ip = jumpTo - 1;
+						frame.ip = jumpTo - 1;
 					}
 					break;
 				}
 				case OpCodes.OpHash: {
 					const num = readUint16(instructions, ip + 1);
-					this.currentFrame.ip += 2;
+					frame.ip += 2;
 					const map = this.buildHash(num);
 					// map won't exist if we encounter error building hash, we stop and push error onto the stack instead
 					if (map) {
@@ -121,7 +121,7 @@ export class VM {
 				}
 				case OpCodes.OpArray: {
 					const num = readUint16(instructions, ip + 1);
-					this.currentFrame.ip += 2;
+					frame.ip += 2;
 					const arr = [];
 					for (let index = 0; index < num; index++) {
 						arr.unshift(this.pop());
@@ -145,8 +145,8 @@ export class VM {
 				}
 				case OpCodes.OpGetFree: {
 					const index = readUint8(instructions, ip + 1);
-					this.currentFrame.ip += 1;
-					const currentClosure = this.currentFrame.closure;
+					frame.ip += 1;
+					const currentClosure = frame.closure;
 					this.push(currentClosure.free[index]);
 					break;
 				}
@@ -214,6 +214,9 @@ export class VM {
 					break;
 				default:
 					break;
+			}
+			if (frame !== this.currentFrame) {
+				frame = this.currentFrame;
 			}
 		}
 	}
