@@ -27,7 +27,7 @@ import {
 	StringObject,
 } from "../object/object";
 import type { Maybe } from "../utils/types";
-import { SymbolScope, SymbolTable } from "./symbol-table";
+import { SymbolScope, SymbolTable, type SymbolType } from "./symbol-table";
 
 export class Compiler {
 	public scopeIndex = 0;
@@ -176,20 +176,7 @@ export class Compiler {
 			if (!symbol) {
 				throw new Error(`undefined variable: ${node.value}`);
 			}
-			switch (symbol.scope) {
-				case SymbolScope.GlobalScope:
-					this.emit(OpCodes.OpGetGlobal, symbol.index);
-					break;
-				case SymbolScope.BuiltinScope:
-					this.emit(OpCodes.OpGetBuiltin, symbol.index);
-					break;
-				case SymbolScope.LocalScope:
-					this.emit(OpCodes.OpGetLocal, symbol.index);
-					break;
-
-				default:
-					break;
-			}
+			this.loadSymbol(symbol);
 		}
 
 		if (node instanceof ArrayLiteral) {
@@ -236,13 +223,16 @@ export class Compiler {
 			}
 
 			const numLocals = this.symbolTable.numDefs;
+			const free = this.symbolTable.freeSymbols;
 			const instructions = this.leaveScope();
+			free.forEach((sym) => this.loadSymbol(sym));
 			const fn = new CompiledFunctionObject(
 				instructions,
 				numLocals,
 				node.parameters!.length,
 			);
-			this.emit(OpCodes.OpConstant, this.addConstant(fn));
+			const index = this.addConstant(fn);
+			this.emit(OpCodes.OpClosure, index, free.length);
 		}
 		if (node instanceof CallExpression) {
 			this.compile(node.func);
@@ -260,6 +250,24 @@ export class Compiler {
 		}
 
 		return null;
+	}
+	loadSymbol(symbol: SymbolType) {
+		switch (symbol.scope) {
+			case SymbolScope.GlobalScope:
+				this.emit(OpCodes.OpGetGlobal, symbol.index);
+				break;
+			case SymbolScope.BuiltinScope:
+				this.emit(OpCodes.OpGetBuiltin, symbol.index);
+				break;
+			case SymbolScope.LocalScope:
+				this.emit(OpCodes.OpGetLocal, symbol.index);
+				break;
+			case SymbolScope.FreeScope:
+				this.emit(OpCodes.OpGetFree, symbol.index);
+				break;
+			default:
+				break;
+		}
 	}
 	addConstant(obj: Maybe<InternalObject>) {
 		this.constants.push(obj);

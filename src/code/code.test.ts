@@ -21,6 +21,11 @@ describe("make", () => {
 				operands: [255],
 				expected: [OpCodes.OpGetLocal, 255],
 			},
+			{
+				op: OpCodes.OpClosure,
+				operands: [65534, 255],
+				expected: [OpCodes.OpClosure, 255, 254, 255],
+			},
 		];
 		for (const { op, operands, expected } of tests) {
 			const instruction = make(op, ...operands);
@@ -43,6 +48,7 @@ it("should decode operands", () => {
 			operands: [255],
 			bytesRead: 1,
 		},
+		{ op: OpCodes.OpClosure, operands: [65535, 255], bytesRead: 3 },
 	];
 	for (const { op, operands, bytesRead } of tests) {
 		const instruction = make(op, ...operands);
@@ -62,11 +68,13 @@ it("should stringify instructions", () => {
 		make(OpCodes.OpGetLocal, 1),
 		make(OpCodes.OpConstant, 1),
 		make(OpCodes.OpConstant, 65535),
+		make(OpCodes.OpClosure, 65535, 255),
 	];
 	const expected = `0000 OpAdd 
 0001 OpGetLocal 1
 0003 OpConstant 1
-0006 OpConstant 65535`;
+0006 OpConstant 65535
+0009 OpClosure 65535 255`;
 	const flattenedIns = new Uint8Array(flattenTypedArrays(instructions));
 
 	expect(stringify(flattenedIns)).toEqual(expected);

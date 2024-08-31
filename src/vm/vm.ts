@@ -11,6 +11,7 @@ import {
 	ArrayObject,
 	BooleanObject,
 	BuiltInObject,
+	ClosureObject,
 	CompiledFunctionObject,
 	ErrorObject,
 	FALSE_OBJ,
@@ -31,7 +32,8 @@ export class VM {
 		private globals: Maybe<InternalObject>[] = [],
 	) {
 		const mainFn = new CompiledFunctionObject(this.bytecode.instructions, 0, 0);
-		const mainFrame = new Frame(mainFn, 0);
+		const mainClosure = new ClosureObject(mainFn, []);
+		const mainFrame = new Frame(mainClosure, 0);
 		this.frames[0] = mainFrame;
 	}
 	public stack: Maybe<InternalObject>[] = [];
@@ -55,6 +57,14 @@ export class VM {
 					this.push(this.bytecode.constants.at(constIndex));
 					break;
 				}
+				case OpCodes.OpClosure: {
+					const constIndex = readUint16(instructions.slice(ip + 1));
+					const free = readUint8(instructions.slice(ip + 3));
+					this.currentFrame.ip += 3;
+					this.pushClosure(constIndex, free);
+					break;
+				}
+
 				case OpCodes.OpSetGlobal: {
 					const globalIndex = readUint16(instructions.slice(ip + 1));
 					this.currentFrame.ip += 2;
@@ -133,6 +143,13 @@ export class VM {
 					}
 					break;
 				}
+				case OpCodes.OpGetFree: {
+					const index = readUint8(instructions.slice(ip + 1));
+					this.currentFrame.ip += 1;
+					const currentClosure = this.currentFrame.closure;
+					this.push(currentClosure.free[index]);
+					break;
+				}
 				case OpCodes.OpCall: {
 					const numArgs = readUint8(instructions.slice(ip + 1));
 					this.currentFrame.ip += 1;
@@ -152,6 +169,7 @@ export class VM {
 					this.push(builtins.at(index)!.builtin);
 					break;
 				}
+
 				case OpCodes.OpReturn: {
 					const frame = this.popFrame();
 					this.stackPointer = frame.basePointer - 1;
@@ -199,26 +217,39 @@ export class VM {
 			}
 		}
 	}
+	pushClosure(constIndex: number, numFree: number) {
+		const fn = this.bytecode.constants[constIndex];
+		if (!(fn instanceof CompiledFunctionObject)) {
+			throw new Error("");
+		}
+		const free: Maybe<InternalObject>[] = [];
+		for (let i = 0; i < numFree; i++) {
+			free[i] = this.stack[this.stackPointer - numFree + i];
+		}
+		this.stackPointer = this.stackPointer - numFree;
+		const closure = new ClosureObject(fn, free);
+		return this.push(closure);
+	}
 	executeCall(numArgs: number) {
 		const fn = this.stack[this.stackPointer - numArgs - 1];
-		if (fn instanceof CompiledFunctionObject) {
-			return this.callFunction(fn, numArgs);
+		if (fn instanceof ClosureObject) {
+			return this.callClosure(fn, numArgs);
 		}
 		if (fn instanceof BuiltInObject) {
 			return this.callBuiltin(fn, numArgs);
 		}
 		return this.push(new ErrorObject("calling non function"));
 	}
-	callFunction(fn: CompiledFunctionObject, numArgs: number) {
-		if (fn.numParams !== numArgs) {
+	callClosure(closure: ClosureObject, numArgs: number) {
+		if (closure.fn.numParams !== numArgs) {
 			return this.push(
 				new ErrorObject(
-					`wrong number of arguments. wanted=${fn.numParams}, got=${numArgs}`,
+					`wrong number of arguments. wanted=${closure.fn.numParams}, got=${numArgs}`,
 				),
 			);
 		}
-		this.pushFrame(new Frame(fn, this.stackPointer - numArgs));
-		this.stackPointer = this.currentFrame.basePointer + fn.numLocals;
+		this.pushFrame(new Frame(closure, this.stackPointer - numArgs));
+		this.stackPointer = this.currentFrame.basePointer + closure.fn.numLocals;
 	}
 	callBuiltin(fn: BuiltInObject, numArgs: number) {
 		const args = this.stack.slice(

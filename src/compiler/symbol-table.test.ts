@@ -156,4 +156,149 @@ describe("resolve", () => {
 			}),
 		);
 	});
+	it("should resolve free variables", () => {
+		const global = new SymbolTable();
+		global.define("a");
+		global.define("b");
+		const firstLocal = SymbolTable.newEnclosedSymbolTable(global);
+		firstLocal.define("c");
+		firstLocal.define("d");
+		const secondLocal = SymbolTable.newEnclosedSymbolTable(firstLocal);
+		secondLocal.define("e");
+		secondLocal.define("f");
+
+		const tests = [
+			{
+				table: firstLocal,
+				expectedSymbols: [
+					{
+						name: "a",
+						scope: SymbolScope.GlobalScope,
+						index: 0,
+					},
+					{
+						name: "b",
+						scope: SymbolScope.GlobalScope,
+						index: 1,
+					},
+					{
+						name: "c",
+						scope: SymbolScope.LocalScope,
+						index: 0,
+					},
+					{
+						name: "d",
+						scope: SymbolScope.LocalScope,
+						index: 1,
+					},
+				],
+				expectedFreeSymbols: [],
+			},
+			{
+				table: secondLocal,
+				expectedSymbols: [
+					{
+						name: "a",
+						scope: SymbolScope.GlobalScope,
+						index: 0,
+					},
+					{
+						name: "b",
+						scope: SymbolScope.GlobalScope,
+						index: 1,
+					},
+					{
+						name: "c",
+						scope: SymbolScope.FreeScope,
+						index: 0,
+					},
+					{
+						name: "d",
+						scope: SymbolScope.FreeScope,
+						index: 1,
+					},
+					{
+						name: "e",
+						scope: SymbolScope.LocalScope,
+						index: 0,
+					},
+					{
+						name: "f",
+						scope: SymbolScope.LocalScope,
+						index: 1,
+					},
+				],
+				expectedFreeSymbols: [
+					{
+						name: "c",
+						scope: SymbolScope.LocalScope,
+						index: 0,
+					},
+					{
+						name: "d",
+						scope: SymbolScope.LocalScope,
+						index: 1,
+					},
+				],
+			},
+		] as {
+			table: SymbolTable;
+			expectedSymbols: SymbolType[];
+			expectedFreeSymbols: SymbolType[];
+		}[];
+		tests.forEach((test) => {
+			test.expectedSymbols.forEach((sym) => {
+				const res = test.table.resolve(sym.name)!;
+				expect(res).toEqual(sym);
+			});
+			expect(test.table.freeSymbols).toHaveLength(
+				test.expectedFreeSymbols.length,
+			);
+			test.expectedFreeSymbols.forEach((free, i) => {
+				const result = test.table.freeSymbols[i];
+				expect(result).toEqual(free);
+			});
+		});
+	});
+	it("should shouldn't mark unresolvable as free variables", () => {
+		const global = new SymbolTable();
+		global.define("a");
+		const firstLocal = SymbolTable.newEnclosedSymbolTable(global);
+		firstLocal.define("c");
+		const secondLocal = SymbolTable.newEnclosedSymbolTable(firstLocal);
+		secondLocal.define("e");
+		secondLocal.define("f");
+
+		const expected = [
+			{
+				name: "a",
+				scope: SymbolScope.GlobalScope,
+				index: 0,
+			},
+			{
+				name: "c",
+				scope: SymbolScope.FreeScope,
+				index: 0,
+			},
+			{
+				name: "e",
+				scope: SymbolScope.LocalScope,
+				index: 0,
+			},
+			{
+				name: "f",
+				scope: SymbolScope.LocalScope,
+				index: 1,
+			},
+		];
+
+		expected.forEach((sym) => {
+			const res = secondLocal.resolve(sym.name)!;
+			expect(res).toEqual(sym);
+		});
+		const unresolvable = ["b", "d"];
+		unresolvable.forEach((name) => {
+			expect(secondLocal.resolve(name)).toBeUndefined();
+		});
+	});
 });

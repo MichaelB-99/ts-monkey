@@ -49,6 +49,7 @@ export enum ObjectType {
 	ARRAY_OBJ = "ARRAY",
 	HASH_OBJ = "HASH",
 	COMPILED_FUNCTION_OBJ = "COMPILED_FN",
+	CLOSURE_OBJ = "CLOSURE",
 }
 
 export class ReturnValueObject implements InternalObject {
@@ -161,6 +162,18 @@ export class CompiledFunctionObject implements InternalObject {
 	}
 	inspect(): string {
 		return "CompiledFunction";
+	}
+}
+export class ClosureObject implements InternalObject {
+	constructor(
+		public fn: CompiledFunctionObject,
+		public free: Maybe<InternalObject>[],
+	) {}
+	inspect(): string {
+		return "Closure";
+	}
+	type(): ObjectType {
+		return ObjectType.CLOSURE_OBJ;
 	}
 }
 export const TRUE_OBJ = new BooleanObject(true);

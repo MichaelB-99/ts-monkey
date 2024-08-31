@@ -33,6 +33,8 @@ export enum OpCodes {
 	OpSetLocal,
 	OpGetLocal,
 	OpGetBuiltin,
+	OpClosure,
+	OpGetFree,
 }
 type Definition = {
 	name: string;
@@ -180,6 +182,14 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 		name: OpCodes[OpCodes.OpGetBuiltin],
 		operandWidths: [1],
 	},
+	[OpCodes.OpClosure]: {
+		name: OpCodes[OpCodes.OpClosure],
+		operandWidths: [2, 1],
+	},
+	[OpCodes.OpGetFree]: {
+		name: OpCodes[OpCodes.OpGetFree],
+		operandWidths: [1],
+	},
 };
 export const lookupOpCode = (opcode: OpCodes) => {
 	const def = definitionsMap[opcode];
@@ -254,7 +264,7 @@ const formatInstruction = (def: Definition, ops: number[]) => {
 			`operand lengths don't match: ${def.name} expects ${def.operandWidths.length} operands, got ${ops.length}`,
 		);
 	}
-	return `${def.name} ${ops.join(",")}`;
+	return `${def.name} ${ops.join(" ")}`;
 };
 
 export const readUint16 = (arr: Instructions) => {

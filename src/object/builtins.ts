@@ -5,7 +5,7 @@ import { VM } from "../vm/vm";
 import {
 	ArrayObject,
 	BuiltInObject,
-	type CompiledFunctionObject,
+	type ClosureObject,
 	ErrorObject,
 	IntegerObject,
 	type InternalObject,
@@ -125,7 +125,8 @@ export const builtins: { name: string; builtin: BuiltInObject }[] = [
 				);
 			}
 			const arr = args[0] as Maybe<ArrayObject>;
-			const callback = args[1] as Maybe<CompiledFunctionObject>;
+			const closure = args[1] as Maybe<ClosureObject>;
+			const callback = closure?.fn;
 
 			if (arr?.type() !== ObjectType.ARRAY_OBJ) {
 				return new ErrorObject(
@@ -163,7 +164,8 @@ export const builtins: { name: string; builtin: BuiltInObject }[] = [
 				);
 			}
 			const arr = args[0] as Maybe<ArrayObject>;
-			const callback = args[1] as Maybe<CompiledFunctionObject>;
+			const closure = args[1] as Maybe<ClosureObject>;
+			const callback = closure?.fn;
 
 			if (arr?.type() !== ObjectType.ARRAY_OBJ) {
 				return new ErrorObject(
@@ -204,7 +206,8 @@ export const builtins: { name: string; builtin: BuiltInObject }[] = [
 				);
 			}
 			const arr = args[0] as Maybe<ArrayObject>;
-			const callback = args[1] as Maybe<CompiledFunctionObject>;
+			const closure = args[1] as Maybe<ClosureObject>;
+			const callback = closure?.fn;
 			const arg3 = args[2] as Maybe<InternalObject>;
 
 			if (arr?.type() !== ObjectType.ARRAY_OBJ) {
@@ -243,7 +246,8 @@ export const builtins: { name: string; builtin: BuiltInObject }[] = [
 				);
 			}
 			const arr = args[0] as Maybe<ArrayObject>;
-			const callback = args[1] as Maybe<CompiledFunctionObject>;
+			const closure = args[1] as Maybe<ClosureObject>;
+			const callback = closure?.fn;
 			if (arr?.type() !== ObjectType.ARRAY_OBJ) {
 				return new ErrorObject(
 					`'filter function only accepts an array. got ${arr?.type()}`,

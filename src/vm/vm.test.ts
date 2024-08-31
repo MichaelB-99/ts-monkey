@@ -503,6 +503,52 @@ describe("vm", () => {
 			},
 		]);
 	});
+	it("should execute closures", () => {
+		runVmTests([
+			{
+				input: `
+				let newClosure = fn(a) {
+				fn() { a; };
+				};
+				let closure = newClosure(99);
+				closure();
+				`,
+				expected: 99,
+			},
+			{
+				input: "let adder = fn x => fn y=> x+y; adder(100)(900)",
+				expected: 1000,
+			},
+			{
+				input: `
+				let newAdderOuter = fn(a, b) {
+				let c = a + b;
+				fn(d) {
+				let e = d + c;
+				fn(f) { e + f; };
+				};
+				};
+				let newAdderInner = newAdderOuter(1, 2)
+				let adder = newAdderInner(3);
+				adder(8);
+				`,
+				expected: 14,
+			},
+			{
+				input: `let a = 1;
+				let newAdderOuter = fn(b) {
+				fn(c) {
+				fn(d) { a + b + c + d };
+				};
+				};
+				let newAdderInner = newAdderOuter(2)
+				let adder = newAdderInner(3);
+				adder(8);
+`,
+				expected: 14,
+			},
+		]);
+	});
 });
 
 const runVmTests = (

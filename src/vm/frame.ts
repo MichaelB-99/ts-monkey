@@ -1,12 +1,12 @@
-import type { CompiledFunctionObject } from "../object/object";
+import type { ClosureObject } from "../object/object";
 
 export class Frame {
 	public ip = -1;
 	constructor(
-		private fn: CompiledFunctionObject,
+		public closure: ClosureObject,
 		public basePointer: number,
 	) {}
 	get instructions() {
-		return this.fn.instructions;
+		return this.closure.fn.instructions;
 	}
 }
