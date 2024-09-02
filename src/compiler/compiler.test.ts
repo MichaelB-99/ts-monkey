@@ -547,6 +547,14 @@ describe("compiler", () => {
 					make(OpCodes.OpPop),
 				],
 			},
+			{
+				input: "fn(){}",
+				expectedConstants: [[make(OpCodes.OpReturn)]],
+				expectedInstructions: [
+					make(OpCodes.OpClosure, 0, 0),
+					make(OpCodes.OpPop),
+				],
+			},
 		]);
 	});
 	it("should compile call expressions", () => {
