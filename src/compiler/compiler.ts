@@ -4,6 +4,7 @@ import {
 	BooleanLiteral,
 	CallExpression,
 	ExpressionStatement,
+	ForStatement,
 	FunctionLiteral,
 	HashLiteral,
 	Identifier,
@@ -238,6 +239,35 @@ export class Compiler {
 			this.compile(node.func);
 			node.args?.forEach((arg) => this.compile(arg));
 			this.emit(OpCodes.OpCall, node.args!.length);
+		}
+		if (node instanceof ForStatement) {
+			this.compile(node.iterable);
+			this.enterScope();
+
+			this.symbolTable.define(node.currItem!.value);
+			if (node.currIndex) {
+				this.symbolTable.define(node.currIndex.value);
+			}
+
+			this.compile(node.body);
+			this.emit(OpCodes.OpPopFrame);
+
+			const free = this.symbolTable.freeSymbols;
+			const numDefs = this.symbolTable.numDefs;
+
+			const instructions = this.leaveScope();
+			free.forEach((sym) => this.loadSymbol(sym));
+
+			const fn = new CompiledFunctionObject(
+				instructions,
+				numDefs,
+				node.currIndex ? 2 : 1,
+			);
+
+			const index = this.addConstant(fn);
+			this.emit(OpCodes.OpFor, index, node.currIndex ? 2 : 1, free.length);
+			this.emit(OpCodes.OpNull);
+			this.emit(OpCodes.OpPop);
 		}
 		if (node instanceof ReturnStatement) {
 			this.compile(node.value);

@@ -570,6 +570,18 @@ describe("vm", () => {
 			},
 		]);
 	});
+	it("should execute for loops", () => {
+		runVmTests([
+			{
+				input: "for(item in [1,2,3,4]){item}",
+				expected: null,
+			},
+			{
+				input: "fn(a){for(item in [1,2,3,4]){a+item}}(1)",
+				expected: null,
+			},
+		]);
+	});
 });
 
 const runVmTests = (

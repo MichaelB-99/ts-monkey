@@ -35,6 +35,8 @@ export enum OpCodes {
 	OpGetBuiltin,
 	OpClosure,
 	OpGetFree,
+	OpFor,
+	OpPopFrame,
 }
 type Definition = {
 	name: string;
@@ -189,6 +191,16 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	[OpCodes.OpGetFree]: {
 		name: OpCodes[OpCodes.OpGetFree],
 		operandWidths: [1],
+	},
+	[OpCodes.OpFor]: {
+		name: OpCodes[OpCodes.OpFor],
+		// this is essentially an opclosure and opcall combined.
+		//operands: constant index, number of 'args' which refers to item and index where index could be left off so will always be either 1 or 2 args, free variables
+		operandWidths: [2, 1, 1],
+	},
+	[OpCodes.OpPopFrame]: {
+		name: OpCodes[OpCodes.OpPopFrame],
+		operandWidths: [],
 	},
 };
 export const lookupOpCode = (opcode: OpCodes) => {

@@ -156,6 +156,33 @@ export class VM {
 					this.executeCall(numArgs);
 					break;
 				}
+				case OpCodes.OpFor: {
+					const index = readUint16(instructions, ip + 1);
+					const numArgs = readUint8(instructions, ip + 3);
+					const numFree = readUint8(instructions, ip + 4);
+					frame.ip += 4;
+					const fn = this.bytecode.constants[index];
+					if (!(fn instanceof CompiledFunctionObject)) {
+						throw new Error("");
+					}
+					const free = this.getFreeVariables(numFree);
+					const arr = this.pop() as ArrayObject;
+					if (!(arr instanceof ArrayObject)) {
+						throw new Error("attempting to iterate over a non iterable");
+					}
+
+					const closure = new ClosureObject(fn, free);
+					for (let i = arr.elements.length - 1; i >= 0; i--) {
+						const element = arr.elements[i];
+						this.push(element);
+						if (numArgs === 2) {
+							this.push(new IntegerObject(i));
+						}
+						this.callClosure(closure, numArgs);
+					}
+					break;
+				}
+
 				case OpCodes.OpReturnValue: {
 					const returnVal = this.pop();
 					const frame = this.popFrame();
@@ -169,7 +196,12 @@ export class VM {
 					this.push(builtins[index]!.builtin);
 					break;
 				}
+				case OpCodes.OpPopFrame: {
+					const frame = this.popFrame();
 
+					this.stackPointer = frame.basePointer;
+					break;
+				}
 				case OpCodes.OpReturn: {
 					const frame = this.popFrame();
 					this.stackPointer = frame.basePointer - 1;
@@ -225,11 +257,8 @@ export class VM {
 		if (!(fn instanceof CompiledFunctionObject)) {
 			throw new Error("");
 		}
-		const free: Maybe<InternalObject>[] = [];
-		for (let i = 0; i < numFree; i++) {
-			free[i] = this.stack[this.stackPointer - numFree + i];
-		}
-		this.stackPointer = this.stackPointer - numFree;
+
+		const free = this.getFreeVariables(numFree);
 		const closure = new ClosureObject(fn, free);
 		return this.push(closure);
 	}
@@ -524,6 +553,14 @@ export class VM {
 	popFrame() {
 		this.framesIndex--;
 		return this.frames[this.framesIndex];
+	}
+	getFreeVariables(numFree: number) {
+		const free: Maybe<InternalObject>[] = [];
+		for (let i = 0; i < numFree; i++) {
+			free[i] = this.stack[this.stackPointer - numFree + i];
+		}
+		this.stackPointer = this.stackPointer - numFree;
+		return free;
 	}
 	nativeBoolToBooleanObject = (bool: boolean) => {
 		return bool ? TRUE_OBJ : FALSE_OBJ;

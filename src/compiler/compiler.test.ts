@@ -919,6 +919,65 @@ describe("compiler", () => {
 			},
 		]);
 	});
+	it("should compile for statements", () => {
+		runCompilerTests([
+			{
+				input: "for(item,index in [1,2,3,4]){item}",
+				expectedConstants: [
+					1,
+					2,
+					3,
+					4,
+					[
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpPop),
+						make(OpCodes.OpPopFrame),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpConstant, 2),
+					make(OpCodes.OpConstant, 3),
+					make(OpCodes.OpArray, 4),
+					make(OpCodes.OpFor, 4, 2),
+					make(OpCodes.OpNull),
+					make(OpCodes.OpPop),
+				],
+			},
+			{
+				input: "fn(a){for(item,index in [1,2,3,4]){a+item}}",
+				expectedConstants: [
+					1,
+					2,
+					3,
+					4,
+					[
+						make(OpCodes.OpGetFree, 0),
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpAdd),
+						make(OpCodes.OpPop),
+						make(OpCodes.OpPopFrame),
+					],
+					[
+						make(OpCodes.OpConstant, 0),
+						make(OpCodes.OpConstant, 1),
+						make(OpCodes.OpConstant, 2),
+						make(OpCodes.OpConstant, 3),
+						make(OpCodes.OpArray, 4),
+						make(OpCodes.OpGetLocal, 0),
+						make(OpCodes.OpFor, 4, 2, 1),
+						make(OpCodes.OpNull),
+						make(OpCodes.OpReturnValue),
+					],
+				],
+				expectedInstructions: [
+					make(OpCodes.OpClosure, 5, 0),
+					make(OpCodes.OpPop),
+				],
+			},
+		]);
+	});
 
 	it("should be the correct compiler scope", () => {
 		const compiler = new Compiler();
