@@ -185,6 +185,9 @@ export class Parser {
 		}
 
 		statement.body = this.parseBlockStatement();
+		if (this.peekTokenIs(TokenType.SEMICOLON)) {
+			this.nextToken();
+		}
 		return statement;
 	}
 	noPrefixParseFnError = (type: TokenType) => {
