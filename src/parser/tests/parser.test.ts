@@ -137,10 +137,8 @@ describe("parser", () => {
 			const parser = new Parser(new Lexer(input));
 			const program = parser.parseProgram();
 			checkParserErrors(parser);
-			console.log(program);
 			expect(program.statements).toHaveLength(1);
 			const statement = program.statements[0] as ExpressionStatement;
-			console.log(statement);
 			expect(statement).toBeInstanceOf(ExpressionStatement);
 			const expr = statement.expression as PrefixExpression;
 			expect(expr).toBeInstanceOf(PrefixExpression);
@@ -209,7 +207,6 @@ describe("parser", () => {
 			const statement = program.statements[0] as ExpressionStatement;
 			expect(statement).toBeInstanceOf(ExpressionStatement);
 			const expr = statement.expression as InfixExpression;
-			console.log(statement);
 			expect(expr).toBeInstanceOf(InfixExpression);
 			testInfixExpression(expr, leftValue, operator, rightValue);
 		}
@@ -319,9 +316,6 @@ describe("parser", () => {
 			const parser = new Parser(new Lexer(input));
 			const program = parser.parseProgram();
 			checkParserErrors(parser);
-			const statement = program.statements[0] as ExpressionStatement;
-			console.log(statement.expression);
-			console.log(program.string());
 			expect(program.string()).toBe(expected);
 		}
 	});
@@ -334,10 +328,8 @@ describe("parser", () => {
 			const parser = new Parser(new Lexer(input));
 			const program = parser.parseProgram();
 			checkParserErrors(parser);
-			console.log(program);
 			expect(program.statements).toHaveLength(1);
 			const statement = program.statements[0] as ExpressionStatement;
-			console.log(statement);
 			expect(statement).toBeInstanceOf(ExpressionStatement);
 			const expr = statement.expression as BooleanLiteral;
 			expect(expr).toBeInstanceOf(BooleanLiteral);
@@ -352,7 +344,6 @@ describe("parser", () => {
 			checkParserErrors(parser);
 			expect(program.statements).toHaveLength(1);
 			const statement = program.statements[0] as ExpressionStatement;
-			console.log(statement);
 			expect(statement).toBeInstanceOf(ExpressionStatement);
 			const expr = statement.expression as IfExpression;
 			expect(expr).toBeInstanceOf(IfExpression);
@@ -361,7 +352,6 @@ describe("parser", () => {
 			expect(expr.consequence?.statements).toHaveLength(1);
 			const consequence = expr.consequence
 				?.statements[0] as ExpressionStatement;
-			console.log(expr);
 			expect(expr.consequence?.statements[0]).toBeInstanceOf(
 				ExpressionStatement,
 			);
@@ -377,10 +367,8 @@ describe("parser", () => {
 			const parser = new Parser(new Lexer(input));
 			const program = parser.parseProgram();
 			checkParserErrors(parser);
-			console.log(program);
 			expect(program.statements).toHaveLength(1);
 			const statement = program.statements[0] as ExpressionStatement;
-			console.log(statement);
 			expect(statement).toBeInstanceOf(ExpressionStatement);
 			const expr = statement.expression as IfExpression;
 			expect(expr).toBeInstanceOf(IfExpression);

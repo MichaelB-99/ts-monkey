@@ -193,7 +193,6 @@ describe("eval", () => {
 			const evaluated = testEval(input);
 			expect(evaluated).toBeInstanceOf(ErrorObject);
 
-			console.log(input);
 			expect((evaluated as ErrorObject).msg).toBe(expected);
 		}
 	});
@@ -594,7 +593,6 @@ describe("eval", () => {
 			[true, 5],
 			[false, 6],
 		]);
-		console.log(evaluated);
 		expect(evaluated.pairs.size).toBe(expected.size);
 		for (const [key, value] of expected.entries()) {
 			const pair = evaluated.pairs.get(key);

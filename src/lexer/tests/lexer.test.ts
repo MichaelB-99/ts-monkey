@@ -199,7 +199,6 @@ describe("lexer", () => {
 			const token = lexer.nextToken();
 			expect(token.type).toBe(test.expectedType);
 			expect(token.literal).toBe(test.expectedLiteral);
-			console.log(token);
 		}
 	});
 });
