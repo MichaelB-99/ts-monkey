@@ -15,7 +15,6 @@ jobs:
         version: latest
     - name: lint
       run: biome ci .
-    - name: Setup bun  
     - uses: oven-sh/setup-bun@v2
     - name: test
       run: bun test
