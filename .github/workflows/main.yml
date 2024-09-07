@@ -1,0 +1,27 @@
+name: Test
+on:
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - '**/README.md'   
+jobs: 
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Biome
+      uses: biomejs/setup-biome@v2
+      with:
+        version: latest
+    - name: lint
+      run: biome ci .
+    - name: Setup bun  
+    - uses: oven-sh/setup-bun@v2
+    - name: test
+      run: bun test
+      
+   
+  
+      
+      
+    
