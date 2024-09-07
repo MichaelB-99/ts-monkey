@@ -1,7 +1,6 @@
 export type Instructions = Uint8Array;
 export type OpCode = number;
 
-// biome-ignore lint/style/useEnumInitializers: <explanation>
 export enum OpCodes {
 	OpConstant,
 	OpAdd,

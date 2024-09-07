@@ -2,6 +2,7 @@ import { Compiler } from "./src/compiler/compiler";
 import { Environment } from "./src/eval/environment";
 import { evaluate } from "./src/eval/eval";
 import { Lexer } from "./src/lexer/lexer";
+import type { IntegerObject } from "./src/object/object";
 import { Parser } from "./src/parser/parser";
 import { VM } from "./src/vm/vm";
 
@@ -16,7 +17,7 @@ const input = `let fibonacci = fn(x) {
     }
     }
     };
-    fibonacci(30);`;
+    fibonacci(35);`;
 
 const engine = process.argv
 	.find((a) => a.startsWith("--engine="))
@@ -24,6 +25,7 @@ const engine = process.argv
 
 if (engine !== "vm" && engine !== "eval") {
 	console.error(`'${engine}' is not a valid engine`);
+	process.exit();
 }
 const ast = new Parser(new Lexer(input)).parseProgram();
 if (engine === "vm") {
@@ -34,8 +36,7 @@ if (engine === "vm") {
 	vm.run();
 	const end = performance.now();
 	console.log(`${end - start}ms`);
-	//@ts-expect-error aaa
-	console.log(vm.lastPoppedElement().value);
+	console.log((vm.lastPoppedElement() as IntegerObject)?.value);
 } else {
 	const start = performance.now();
 	const result = evaluate(ast, new Environment());

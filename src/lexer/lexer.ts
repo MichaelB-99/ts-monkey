@@ -7,10 +7,10 @@ export class Lexer {
 	// always the next position
 	private readPosition = 0;
 	private ch: Char = "";
-	constructor(public input: string) {
+	constructor(private input: string) {
 		this.readChar();
 	}
-	readChar() {
+	private readChar() {
 		// if we reach the end of input
 		if (this.readPosition >= this.input.length) {
 			this.ch = 0;
@@ -166,27 +166,27 @@ export class Lexer {
 		this.readChar();
 		return token;
 	}
-	newToken(type: TokenType, literal: string): Token {
+	private newToken(type: TokenType, literal: string): Token {
 		return {
 			type,
 			literal,
 		};
 	}
 
-	readIdentifier() {
+	private readIdentifier() {
 		const currPos = this.position;
 		while (this.isLetter(this.ch) || this.isDigit(this.ch)) {
 			this.readChar();
 		}
 		return this.input.slice(currPos, this.position);
 	}
-	isLetter(ch: Char) {
+	private isLetter(ch: Char) {
 		return (
 			(ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") || this.ch === "_"
 		);
 	}
 
-	readNumber() {
+	private readNumber() {
 		const currPos = this.position;
 		while (this.isDigit(this.ch)) {
 			this.readChar();
@@ -194,7 +194,7 @@ export class Lexer {
 		return this.input.slice(currPos, this.position);
 	}
 
-	skipWhitespace() {
+	private skipWhitespace() {
 		while (
 			this.ch === " " ||
 			this.ch === "\t" ||
@@ -205,16 +205,16 @@ export class Lexer {
 		}
 	}
 
-	isDigit(ch: Char) {
+	private isDigit(ch: Char) {
 		// gotta love js type coercion.. it will coerce 0 (eof) to a string
 		return ch !== 0 && ch >= "0" && ch <= "9";
 	}
 
-	peekChar() {
+	private peekChar() {
 		if (this.readPosition >= this.input.length) return 0;
 		return this.input[this.readPosition];
 	}
-	readString() {
+	private readString() {
 		this.readChar();
 		const position = this.position;
 		while (this.ch !== '"' && this.ch !== 0) {
@@ -222,20 +222,20 @@ export class Lexer {
 		}
 		return this.input.slice(position, this.position);
 	}
-	skipComment() {
+	private skipComment() {
 		if (this.ch === "/" && this.peekChar() === "*") {
 			this.skipMultilineComment();
 		} else {
 			this.skipSingleLineComment();
 		}
 	}
-	skipSingleLineComment() {
+	private skipSingleLineComment() {
 		while (this.ch !== "\n") {
 			this.readChar();
 		}
 	}
 
-	skipMultilineComment() {
+	private skipMultilineComment() {
 		let found = false;
 		while (!found) {
 			if (this.ch === "*" && this.peekChar() === "/") {
@@ -248,7 +248,7 @@ export class Lexer {
 		this.readChar();
 		this.readChar();
 	}
-	get isComment() {
+	private get isComment() {
 		return (
 			(this.ch === "/" && this.peekChar() === "/") ||
 			(this.ch === "/" && this.peekChar() === "*")

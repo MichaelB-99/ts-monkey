@@ -1039,7 +1039,6 @@ const testInstructions = (actual: Instructions, expected: Uint8Array[]) => {
 	expect(stringify(actual)).toEqual(stringify(new Uint8Array(flattened)));
 };
 
-// biome-ignore lint/suspicious/noExplicitAny:
 const testConstants = (actual: Maybe<InternalObject>[], expected: any[]) => {
 	expect(actual.length).toBe(expected.length);
 	expected.forEach((expConstant, i) => {

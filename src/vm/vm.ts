@@ -28,7 +28,7 @@ import { Frame } from "./frame";
 const STACK_SIZE = 2048;
 export class VM {
 	constructor(
-		public bytecode: Bytecode,
+		private bytecode: Bytecode,
 		private globals: Maybe<InternalObject>[] = [],
 	) {
 		const mainFn = new CompiledFunctionObject(this.bytecode.instructions, 0, 0);
@@ -36,10 +36,10 @@ export class VM {
 		const mainFrame = new Frame(mainClosure, 0);
 		this.frames[0] = mainFrame;
 	}
-	public stack: Maybe<InternalObject>[] = [];
-	public stackPointer = 0;
-	public frames: Frame[] = [];
-	public framesIndex = 1;
+	private stack: Maybe<InternalObject>[] = [];
+	private stackPointer = 0;
+	private frames: Frame[] = [];
+	private framesIndex = 1;
 	run() {
 		let ip: number;
 		let instructions: Instructions;
@@ -252,7 +252,7 @@ export class VM {
 			}
 		}
 	}
-	pushClosure(constIndex: number, numFree: number) {
+	private pushClosure(constIndex: number, numFree: number) {
 		const fn = this.bytecode.constants[constIndex];
 		if (!(fn instanceof CompiledFunctionObject)) {
 			throw new Error("");
@@ -262,7 +262,7 @@ export class VM {
 		const closure = new ClosureObject(fn, free);
 		return this.push(closure);
 	}
-	executeCall(numArgs: number) {
+	private executeCall(numArgs: number) {
 		const fn = this.stack[this.stackPointer - numArgs - 1];
 		if (fn instanceof ClosureObject) {
 			return this.callClosure(fn, numArgs);
@@ -272,7 +272,7 @@ export class VM {
 		}
 		return this.push(new ErrorObject("calling non function"));
 	}
-	callClosure(closure: ClosureObject, numArgs: number) {
+	private callClosure(closure: ClosureObject, numArgs: number) {
 		if (closure.fn.numParams !== numArgs) {
 			return this.push(
 				new ErrorObject(
@@ -283,7 +283,7 @@ export class VM {
 		this.pushFrame(new Frame(closure, this.stackPointer - numArgs));
 		this.stackPointer = this.currentFrame.basePointer + closure.fn.numLocals;
 	}
-	callBuiltin(fn: BuiltInObject, numArgs: number) {
+	private callBuiltin(fn: BuiltInObject, numArgs: number) {
 		const args = this.stack.slice(
 			this.stackPointer - numArgs,
 			this.stackPointer,
@@ -297,7 +297,7 @@ export class VM {
 		this.stackPointer = this.stackPointer - numArgs - 1;
 		this.push(res);
 	}
-	indexString(indexee: StringObject, idx: Maybe<InternalObject>) {
+	private indexString(indexee: StringObject, idx: Maybe<InternalObject>) {
 		if (!(idx instanceof IntegerObject)) {
 			return this.push(
 				new ErrorObject(`${idx?.type()} cannot be used to index string`),
@@ -314,19 +314,19 @@ export class VM {
 		return this.stack[this.stackPointer];
 	}
 
-	push(obj: Maybe<InternalObject>) {
+	private push(obj: Maybe<InternalObject>) {
 		if (this.stackPointer >= STACK_SIZE) {
 			throw new Error("Stack overflow");
 		}
 		this.stack[this.stackPointer] = obj;
 		this.stackPointer++;
 	}
-	pop() {
+	private pop() {
 		const obj = this.stack[this.stackPointer - 1];
 		this.stackPointer--;
 		return obj;
 	}
-	doBinaryOp(op: OpCodes) {
+	private doBinaryOp(op: OpCodes) {
 		const n2 = this.pop();
 		const n1 = this.pop();
 		if (n1 instanceof IntegerObject && n2 instanceof IntegerObject) {
@@ -336,7 +336,7 @@ export class VM {
 			this.doStringBinaryOp(n1, op, n2);
 		}
 	}
-	doIntegerBinaryOp(n1: IntegerObject, op: OpCodes, n2: IntegerObject) {
+	private doIntegerBinaryOp(n1: IntegerObject, op: OpCodes, n2: IntegerObject) {
 		switch (op) {
 			case OpCodes.OpAdd:
 				return this.push(new IntegerObject(n1.value + n2.value));
@@ -352,18 +352,17 @@ export class VM {
 				break;
 		}
 	}
-	doStringBinaryOp(n1: StringObject, op: OpCodes, n2: StringObject) {
+	private doStringBinaryOp(n1: StringObject, op: OpCodes, n2: StringObject) {
 		if (op !== OpCodes.OpAdd) {
 			return this.push(
 				new ErrorObject(
-					// todo map opcodes to operator names e.g OpAdd -> + only applies for operators
 					`operator ${definitionsMap[op].char} cannot be used with strings`,
 				),
 			);
 		}
 		return this.push(new StringObject(n1.value + n2.value));
 	}
-	executeComparison(op: OpCodes) {
+	private executeComparison(op: OpCodes) {
 		const right = this.pop();
 		const left = this.pop();
 		if (left?.type() !== right?.type()) {
@@ -406,7 +405,7 @@ export class VM {
 				);
 		}
 	}
-	executeIntegerComparison(
+	private executeIntegerComparison(
 		left: IntegerObject,
 		op: OpCodes,
 		right: IntegerObject,
@@ -433,7 +432,7 @@ export class VM {
 				throw new Error(`unknown operator ${op}`);
 		}
 	}
-	executeStringComparison(
+	private executeStringComparison(
 		left: StringObject,
 		op: OpCodes,
 		right: StringObject,
@@ -452,13 +451,12 @@ export class VM {
 			default:
 				return this.push(
 					new ErrorObject(
-						// todo map opcodes to operator names e.g OpAdd -> + only applies for operators
 						`operator ${definitionsMap[op].char} cannot be used with strings`,
 					),
 				);
 		}
 	}
-	executeBangOperator() {
+	private executeBangOperator() {
 		const val = this.pop();
 		switch (val) {
 			case TRUE_OBJ:
@@ -474,14 +472,16 @@ export class VM {
 				return this.push(FALSE_OBJ);
 		}
 	}
-	executeMinusOperator() {
+	private executeMinusOperator() {
 		const val = this.pop();
 		if (!(val instanceof IntegerObject)) {
-			throw new Error("TypeError: unsupported type for negation");
+			return this.push(
+				new ErrorObject("TypeError: unsupported type for negation"),
+			);
 		}
 		this.push(new IntegerObject(-val.value));
 	}
-	buildHash(numOfPairs: number) {
+	private buildHash(numOfPairs: number) {
 		const map = new Map();
 		for (let i = 0; i < numOfPairs; i++) {
 			const value = this.pop();
@@ -507,14 +507,14 @@ export class VM {
 		return map;
 	}
 
-	isTruthy(obj: Maybe<InternalObject>) {
+	private isTruthy(obj: Maybe<InternalObject>) {
 		if (obj instanceof BooleanObject) {
 			return obj.value;
 		}
 		if (obj === NULL_OBJ) return false;
 		return true;
 	}
-	indexArray(arr: ArrayObject, idx: Maybe<InternalObject>) {
+	private indexArray(arr: ArrayObject, idx: Maybe<InternalObject>) {
 		if (!(idx instanceof IntegerObject)) {
 			return this.push(
 				new ErrorObject(`${idx?.type()} cannot be used to index arrays`),
@@ -526,7 +526,7 @@ export class VM {
 			this.push(arr.elements.at(idx.value));
 		}
 	}
-	indexHash(hash: HashObject, idx: Maybe<InternalObject>) {
+	private indexHash(hash: HashObject, idx: Maybe<InternalObject>) {
 		if (
 			!(
 				idx instanceof IntegerObject ||
@@ -543,18 +543,18 @@ export class VM {
 			this.push(pair.value);
 		}
 	}
-	get currentFrame() {
+	private get currentFrame() {
 		return this.frames[this.framesIndex - 1];
 	}
-	pushFrame(frame: Frame) {
+	private pushFrame(frame: Frame) {
 		this.frames[this.framesIndex] = frame;
 		this.framesIndex++;
 	}
-	popFrame() {
+	private popFrame() {
 		this.framesIndex--;
 		return this.frames[this.framesIndex];
 	}
-	getFreeVariables(numFree: number) {
+	private getFreeVariables(numFree: number) {
 		const free: Maybe<InternalObject>[] = [];
 		for (let i = 0; i < numFree; i++) {
 			free[i] = this.stack[this.stackPointer - numFree + i];
@@ -562,7 +562,7 @@ export class VM {
 		this.stackPointer = this.stackPointer - numFree;
 		return free;
 	}
-	nativeBoolToBooleanObject = (bool: boolean) => {
+	private nativeBoolToBooleanObject(bool: boolean) {
 		return bool ? TRUE_OBJ : FALSE_OBJ;
-	};
+	}
 }

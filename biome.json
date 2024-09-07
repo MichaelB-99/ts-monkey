@@ -10,8 +10,12 @@
 		"enabled": true,
 
 		"rules": {
+			"suspicious": {
+				"noExplicitAny": "off"
+			},
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"useEnumInitializers": "off"
 			},
 			"complexity": {
 				"noForEach": "off"

@@ -281,7 +281,7 @@ export class Compiler {
 
 		return null;
 	}
-	loadSymbol(symbol: SymbolType) {
+	private loadSymbol(symbol: SymbolType) {
 		switch (symbol.scope) {
 			case SymbolScope.GlobalScope:
 				this.emit(OpCodes.OpGetGlobal, symbol.index);
@@ -299,7 +299,7 @@ export class Compiler {
 				break;
 		}
 	}
-	addConstant(obj: Maybe<InternalObject>) {
+	private addConstant(obj: Maybe<InternalObject>) {
 		this.constants.push(obj);
 		return this.constants.length - 1;
 	}
@@ -309,12 +309,12 @@ export class Compiler {
 		this.setLastInstruction(op, pos);
 		return pos;
 	}
-	setLastInstruction(op: OpCodes, pos: number) {
+	private setLastInstruction(op: OpCodes, pos: number) {
 		const prev = this.scopes[this.scopeIndex].lastInstruction;
 		this.scopes[this.scopeIndex].lastInstruction = { opcode: op, pos };
 		this.scopes[this.scopeIndex].previousInstruction = prev;
 	}
-	removeLastPop() {
+	private removeLastPop() {
 		const currScope = this.scopes[this.scopeIndex];
 		currScope.instructions = this.currentInstructions.slice(
 			0,
@@ -323,13 +323,13 @@ export class Compiler {
 		currScope.lastInstruction = currScope.previousInstruction;
 	}
 
-	replaceInstruction(pos: number, newInstruction: Uint8Array) {
+	private replaceInstruction(pos: number, newInstruction: Uint8Array) {
 		for (let i = 0; i < newInstruction.length; i++) {
 			this.currentInstructions[pos + i] = newInstruction[i];
 		}
 	}
 
-	changeOperand(opPos: number, operand: number) {
+	private changeOperand(opPos: number, operand: number) {
 		const newInstruction = make(
 			this.scopes[this.scopeIndex].instructions[opPos],
 			operand,
@@ -353,7 +353,7 @@ export class Compiler {
 		this.scopeIndex--;
 		return instructions;
 	}
-	addInstruction(ins: Uint8Array) {
+	private addInstruction(ins: Uint8Array) {
 		const pos = this.currentInstructions.length;
 		const newArr = new Uint8Array(this.currentInstructions.length + ins.length);
 		newArr.set(this.currentInstructions);
@@ -361,13 +361,13 @@ export class Compiler {
 		this.scopes[this.scopeIndex].instructions = newArr;
 		return pos;
 	}
-	lastInstructionIs(op: OpCodes) {
+	private lastInstructionIs(op: OpCodes) {
 		return this.scopes[this.scopeIndex].lastInstruction?.opcode === op;
 	}
 	bytecode() {
 		return new Bytecode(this.currentInstructions, this.constants);
 	}
-	get currentInstructions() {
+	private get currentInstructions() {
 		return this.scopes[this.scopeIndex].instructions;
 	}
 }

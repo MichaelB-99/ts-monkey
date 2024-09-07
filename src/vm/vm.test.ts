@@ -587,7 +587,6 @@ describe("vm", () => {
 const runVmTests = (
 	tests: {
 		input: string;
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		expected: any;
 	}[],
 ) => {
@@ -603,7 +602,6 @@ const runVmTests = (
 	}
 };
 
-// biome-ignore lint/suspicious/noExplicitAny:
 const testExpectedObject = (actual: InternalObject, expected: any) => {
 	if (expected === null) {
 		expect(actual).toBe(NULL_OBJ);
