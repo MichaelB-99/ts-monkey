@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import { stringify } from "../code/code";
 import { Compiler } from "../compiler/compiler";
 import { SymbolTable } from "../compiler/symbol-table";
 import { Environment } from "../eval/environment";
@@ -21,6 +22,10 @@ export async function repl() {
 				default: false,
 				short: "c",
 			},
+			bytecode: {
+				type: "boolean",
+				default: false,
+			},
 		},
 		allowPositionals: true,
 	});
@@ -42,6 +47,9 @@ export async function repl() {
 			compiler.compile(program);
 			const vm = new VM(compiler.bytecode(), globals);
 			vm.run();
+			if (values.bytecode) {
+				console.log(stringify(compiler.bytecode().instructions));
+			}
 			console.log(vm.lastPoppedElement()?.inspect());
 		} else {
 			const evaluated = evaluate(program, env);

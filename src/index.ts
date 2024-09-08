@@ -1,5 +1,6 @@
 import { userInfo } from "node:os";
 import { Glob } from "bun";
+import { stringify } from "./code/code";
 import { Compiler } from "./compiler/compiler";
 import { Environment } from "./eval/environment";
 import { evaluate } from "./eval/eval";
@@ -36,11 +37,15 @@ async function runFiles() {
 					return;
 				}
 				const printAST = Bun.argv.includes("--ast");
+				const printOps = Bun.argv.includes("--bytecode");
 				if (Bun.argv.includes("-c")) {
 					const compiler = new Compiler();
 					compiler.compile(program);
 					const vm = new VM(compiler.bytecode());
 					vm.run();
+					if (printOps) {
+						console.log(stringify(compiler.bytecode().instructions));
+					}
 					console.log(vm.lastPoppedElement()?.inspect());
 				} else {
 					console.log(file, evaluate(program, new Environment())?.inspect());
