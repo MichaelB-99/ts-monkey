@@ -11,18 +11,12 @@ export class Lexer {
 		this.readChar();
 	}
 	private readChar() {
-		// if we reach the end of input
 		if (this.readPosition >= this.input.length) {
 			this.ch = 0;
-		}
-		// otherwise keep going
-		else {
-			// update char
+		} else {
 			this.ch = this.input[this.readPosition];
 		}
-		// update position count
 		this.position = this.readPosition;
-		//update readPosition
 		this.readPosition += 1;
 	}
 	nextToken(): Token {
@@ -30,8 +24,6 @@ export class Lexer {
 		this.skipWhitespace();
 		if (this.isComment) {
 			this.skipComment();
-			// return and call next token again in case there are multiple consecutive comments.
-			// otherwise we'd only skip the first comment and end up lexing comment characters thinking they are part of monkey code
 			return this.nextToken();
 		}
 		switch (this.ch) {
