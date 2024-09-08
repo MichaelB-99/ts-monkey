@@ -311,6 +311,9 @@ describe("parser", () => {
 				input: "false && true || 5>2 && 3>1",
 				expected: "((false && true) || ((5 > 2) && (3 > 1)))",
 			},
+			{ input: "20%2", expected: "(20 % 2)" },
+			{ input: "20%2+2", expected: "((20 % 2) + 2)" },
+			{ input: "5%2*2", expected: "((5 % 2) * 2)" },
 		];
 		for (const { input, expected } of tests) {
 			const parser = new Parser(new Lexer(input));

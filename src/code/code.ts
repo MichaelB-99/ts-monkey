@@ -8,6 +8,7 @@ export enum OpCodes {
 	OpSub,
 	OpMult,
 	OpDiv,
+	OpRem,
 	OpTrue,
 	OpFalse,
 	OpOr,
@@ -199,6 +200,11 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 	},
 	[OpCodes.OpPopFrame]: {
 		name: OpCodes[OpCodes.OpPopFrame],
+		operandWidths: [],
+	},
+	[OpCodes.OpRem]: {
+		name: OpCodes[OpCodes.OpRem],
+		char: "%",
 		operandWidths: [],
 	},
 };

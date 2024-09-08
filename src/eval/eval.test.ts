@@ -32,20 +32,16 @@ describe("eval", () => {
 			{ input: "5 + 2 * 10", expected: 25 },
 			{ input: "20 + 2 * -10", expected: 0 },
 			{ input: "50 / 2 * 2 + 10", expected: 60 },
-			{ input: "5/0", expected: new ErrorObject("cannot divide by 0") },
-
 			{ input: "2 * (5 + 10)", expected: 30 },
 			{ input: "3 * 3 * 3 + 10", expected: 37 },
 			{ input: "3 * (3 * 3) + 10", expected: 37 },
 			{ input: "(5 + 10 * 2 + 15 / 3) * 2 + -10", expected: 50 },
+			{ input: "20%2", expected: 0 },
+			{ input: "5%2", expected: 1 },
 		];
 		for (const { expected, input } of tests) {
-			const evaluated = testEval(input);
-			if (expected instanceof ErrorObject) {
-				expect((evaluated as ErrorObject).msg).toBe(expected.msg);
-			} else {
-				testIntegerObject(evaluated as IntegerObject, expected);
-			}
+			const evaluated = testEval(input) as IntegerObject;
+			testIntegerObject(evaluated, expected);
 		}
 	});
 	it("should evaluate boolean expressions", () => {
@@ -193,6 +189,22 @@ describe("eval", () => {
 			{
 				input: `5 >= "hi"`,
 				expected: "type mismatch: INTEGER >= STRING",
+			},
+			{
+				input: "5/0",
+				expected: "cannot divide by 0",
+			},
+			{
+				input: "1%true",
+				expected: "type mismatch: INTEGER % BOOLEAN",
+			},
+			{
+				input: "true%false",
+				expected: "unknown operator: BOOLEAN % BOOLEAN",
+			},
+			{
+				input: "1%0",
+				expected: "cannot divide by 0",
 			},
 		];
 		for (const { input, expected } of tests) {

@@ -85,7 +85,9 @@ export class Lexer {
 			case "/":
 				token = this.newToken(TokenType.SLASH, this.ch);
 				break;
-
+			case "%":
+				token = this.newToken(TokenType.REMAINDER, this.ch);
+				break;
 			case "<":
 				if (this.peekChar() === "=") {
 					const currChar = this.ch;

@@ -72,6 +72,7 @@ describe("lexer", () => {
 			*/
 
 			1
+			%
 			
 		`;
 
@@ -192,6 +193,7 @@ describe("lexer", () => {
 			{ expectedType: TokenType.ASTERISK, expectedLiteral: "*" },
 			{ expectedType: TokenType.INT, expectedLiteral: "2" },
 			{ expectedType: TokenType.INT, expectedLiteral: "1" },
+			{ expectedType: TokenType.REMAINDER, expectedLiteral: "%" },
 			{ expectedType: TokenType.EOF, expectedLiteral: "" },
 		];
 		const lexer = new Lexer(input);

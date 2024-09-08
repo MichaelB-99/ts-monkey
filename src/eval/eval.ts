@@ -255,13 +255,16 @@ const evalIntegerInfixExpression = (
 
 		case "*":
 			return new IntegerObject(leftValue * rightValue);
-
 		case "/":
 			if (rightValue === 0) {
 				return new ErrorObject("cannot divide by 0");
 			}
 			return new IntegerObject(leftValue / rightValue);
-
+		case "%":
+			if (rightValue === 0) {
+				return new ErrorObject("cannot divide by 0");
+			}
+			return new IntegerObject(leftValue % rightValue);
 		case "<":
 			return nativeBoolToBooleanObject(leftValue < rightValue);
 		case "<=":

@@ -93,6 +93,9 @@ export class Compiler {
 				case "/":
 					this.emit(OpCodes.OpDiv);
 					break;
+				case "%":
+					this.emit(OpCodes.OpRem);
+					break;
 
 				case "==":
 					this.emit(OpCodes.OpEqual);

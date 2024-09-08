@@ -56,6 +56,7 @@ export class Parser {
 		"-": Precedences.SUM,
 		"*": Precedences.PRODUCT,
 		"/": Precedences.PRODUCT,
+		"%": Precedences.PRODUCT,
 		"(": Precedences.CALL,
 		"||": Precedences.LOGICAL_OR,
 		"&&": Precedences.LOGICAL_AND,
@@ -87,6 +88,7 @@ export class Parser {
 		this.registerInfix(TokenType.GTE, this.parseInfixExpression);
 		this.registerInfix(TokenType.OR, this.parseInfixExpression);
 		this.registerInfix(TokenType.AND, this.parseInfixExpression);
+		this.registerInfix(TokenType.REMAINDER, this.parseInfixExpression);
 		this.registerInfix(TokenType.LPAREN, this.parseCallExpression);
 		this.registerInfix(TokenType.LBRACKET, this.parseIndexExpression);
 		this.nextToken();

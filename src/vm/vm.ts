@@ -221,6 +221,7 @@ export class VM {
 				case OpCodes.OpSub:
 				case OpCodes.OpMult:
 				case OpCodes.OpDiv:
+				case OpCodes.OpRem:
 				case OpCodes.OpAdd: {
 					this.doBinaryOp(op);
 					break;
@@ -360,6 +361,11 @@ export class VM {
 					return this.push(new ErrorObject("cannot divide by 0"));
 				}
 				return this.push(new IntegerObject(n1.value / n2.value));
+			case OpCodes.OpRem:
+				if (n2.value === 0) {
+					return this.push(new ErrorObject("cannot divide by 0"));
+				}
+				return this.push(new IntegerObject(n1.value % n2.value));
 			case OpCodes.OpSub: {
 				return this.push(new IntegerObject(n1.value - n2.value));
 			}

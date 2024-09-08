@@ -23,6 +23,7 @@ export enum TokenType {
 	OR = "||",
 	AND = "&&",
 	ARROW = "=>",
+	REMAINDER = "%",
 
 	//delimiters
 	COMMA = ",",

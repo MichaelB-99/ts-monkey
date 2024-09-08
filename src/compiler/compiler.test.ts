@@ -73,6 +73,16 @@ describe("compiler", () => {
 					make(OpCodes.OpPop),
 				],
 			},
+			{
+				input: "2%2",
+				expectedConstants: [2, 2],
+				expectedInstructions: [
+					make(OpCodes.OpConstant, 0),
+					make(OpCodes.OpConstant, 1),
+					make(OpCodes.OpRem),
+					make(OpCodes.OpPop, 0),
+				],
+			},
 		];
 		runCompilerTests(tests);
 	});
