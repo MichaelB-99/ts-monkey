@@ -32,6 +32,8 @@ describe("eval", () => {
 			{ input: "5 + 2 * 10", expected: 25 },
 			{ input: "20 + 2 * -10", expected: 0 },
 			{ input: "50 / 2 * 2 + 10", expected: 60 },
+			{ input: "5/0", expected: new ErrorObject("cannot divide by 0") },
+
 			{ input: "2 * (5 + 10)", expected: 30 },
 			{ input: "3 * 3 * 3 + 10", expected: 37 },
 			{ input: "3 * (3 * 3) + 10", expected: 37 },
@@ -39,7 +41,11 @@ describe("eval", () => {
 		];
 		for (const { expected, input } of tests) {
 			const evaluated = testEval(input);
-			testIntegerObject(evaluated as IntegerObject, expected);
+			if (expected instanceof ErrorObject) {
+				expect((evaluated as ErrorObject).msg).toBe(expected.msg);
+			} else {
+				testIntegerObject(evaluated as IntegerObject, expected);
+			}
 		}
 	});
 	it("should evaluate boolean expressions", () => {

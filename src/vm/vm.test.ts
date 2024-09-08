@@ -28,6 +28,7 @@ describe("vm", () => {
 			{ input: "1;2;", expected: 2 },
 			{ input: "1 * 2", expected: 2 },
 			{ input: "4 / 2", expected: 2 },
+			{ input: "2/0", expected: new ErrorObject("cannot divide by 0") },
 			{ input: "50 / 2 * 2 + 10 - 5", expected: 55 },
 			{ input: "5 * (2 + 10)", expected: 60 },
 			{ input: "5 * 2 + 10", expected: 20 },

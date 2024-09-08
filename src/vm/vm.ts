@@ -343,6 +343,9 @@ export class VM {
 			case OpCodes.OpMult:
 				return this.push(new IntegerObject(n1.value * n2.value));
 			case OpCodes.OpDiv:
+				if (n2.value === 0) {
+					return this.push(new ErrorObject("cannot divide by 0"));
+				}
 				return this.push(new IntegerObject(n1.value / n2.value));
 			case OpCodes.OpSub: {
 				return this.push(new IntegerObject(n1.value - n2.value));
