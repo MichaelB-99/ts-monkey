@@ -149,13 +149,13 @@ export const definitionsMap: Record<OpCodes, Definition> = {
 		operandWidths: [],
 	},
 	[OpCodes.OpOr]: {
-		name: OpCodes[OpCodes.OpPop],
+		name: OpCodes[OpCodes.OpOr],
 		char: "||",
 
 		operandWidths: [],
 	},
 	[OpCodes.OpAnd]: {
-		name: OpCodes[OpCodes.OpAdd],
+		name: OpCodes[OpCodes.OpAnd],
 		char: "&&",
 		operandWidths: [],
 	},
