@@ -84,8 +84,28 @@ describe("vm", () => {
 				expected: new ErrorObject("type mismatch: ARRAY == BOOLEAN"),
 			},
 			{
+				input: "1+true",
+				expected: new ErrorObject("type mismatch: INTEGER + BOOLEAN"),
+			},
+			{
+				input: "true+false",
+				expected: new ErrorObject("unknown operator: BOOLEAN + BOOLEAN"),
+			},
+			{
+				input: "true>false",
+				expected: new ErrorObject("unknown operator: BOOLEAN > BOOLEAN"),
+			},
+			{
+				input: `1 * "hi"`,
+				expected: new ErrorObject("type mismatch: INTEGER * STRING"),
+			},
+			{
 				input: `"hi" > "a"`,
-				expected: new ErrorObject("operator > cannot be used with strings"),
+				expected: new ErrorObject("unknown operator: STRING > STRING"),
+			},
+			{
+				input: `"hi" * "a"`,
+				expected: new ErrorObject("unknown operator: STRING * STRING"),
 			},
 		]);
 	});

@@ -329,12 +329,25 @@ export class VM {
 	private doBinaryOp(op: OpCodes) {
 		const n2 = this.pop();
 		const n1 = this.pop();
+		if (n1?.type() !== n2?.type()) {
+			return this.push(
+				new ErrorObject(
+					`type mismatch: ${n1?.type()} ${definitionsMap[op].char} ${n2?.type()}`,
+				),
+			);
+		}
+
 		if (n1 instanceof IntegerObject && n2 instanceof IntegerObject) {
-			this.doIntegerBinaryOp(n1, op, n2);
+			return this.doIntegerBinaryOp(n1, op, n2);
 		}
 		if (n1 instanceof StringObject && n2 instanceof StringObject) {
-			this.doStringBinaryOp(n1, op, n2);
+			return this.doStringBinaryOp(n1, op, n2);
 		}
+		return this.push(
+			new ErrorObject(
+				`unknown operator: ${n1?.type()} ${definitionsMap[op].char} ${n2?.type()}`,
+			),
+		);
 	}
 	private doIntegerBinaryOp(n1: IntegerObject, op: OpCodes, n2: IntegerObject) {
 		switch (op) {
@@ -359,7 +372,7 @@ export class VM {
 		if (op !== OpCodes.OpAdd) {
 			return this.push(
 				new ErrorObject(
-					`operator ${definitionsMap[op].char} cannot be used with strings`,
+					`unknown operator: ${n1?.type()} ${definitionsMap[op].char} ${n2?.type()}`,
 				),
 			);
 		}
@@ -403,8 +416,10 @@ export class VM {
 				this.push(this.nativeBoolToBooleanObject(left !== right));
 				break;
 			default:
-				throw new Error(
-					`unknown operator ${op}, ${left?.type()}, ${right?.type()}`,
+				return this.push(
+					new ErrorObject(
+						`unknown operator: ${left?.type()} ${definitionsMap[op].char} ${right?.type()}`,
+					),
 				);
 		}
 	}
@@ -454,7 +469,7 @@ export class VM {
 			default:
 				return this.push(
 					new ErrorObject(
-						`operator ${definitionsMap[op].char} cannot be used with strings`,
+						`unknown operator: ${left?.type()} ${definitionsMap[op].char} ${right?.type()}`,
 					),
 				);
 		}
