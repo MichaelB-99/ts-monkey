@@ -314,7 +314,7 @@ export class VM {
 		return this.stack[this.stackPointer];
 	}
 
-	private push(obj: Maybe<InternalObject>) {
+	push(obj: Maybe<InternalObject>) {
 		if (this.stackPointer >= STACK_SIZE) {
 			throw new Error("Stack overflow");
 		}
