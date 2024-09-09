@@ -138,8 +138,5 @@ export const builtins: Record<string, BuiltInObject> = {
 		}
 		return new ArrayObject(filtered);
 	}),
-	puts: new BuiltInObject(({ args }) => {
-		args.forEach((arg) => console.log(arg?.inspect()));
-		return NULL_OBJ;
-	}),
+	puts: getBuiltinByName("puts")!,
 };
