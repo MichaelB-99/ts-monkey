@@ -5,7 +5,8 @@
 	"scripts": {
 		"monkey-repl": "bun run src/index.ts --repl",
 		"monkey-interpret": "bun run src/index.ts",
-		"monkey-run": "bun run src/index.ts"
+		"monkey-run": "bun run src/index.ts",
+		"benchmark": "bun benchmark.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.0",
